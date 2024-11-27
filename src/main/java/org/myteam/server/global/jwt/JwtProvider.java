@@ -27,8 +27,8 @@ public class JwtProvider {
      * 토큰 발급
      *
      * @param duration Duration 만료 기간
-     * @param userId UUID
-     * @param role String
+     * @param userId   UUID
+     * @param role     String
      * @return String
      */
     public String generateToken(Duration duration, UUID userId, String role) {
@@ -40,19 +40,13 @@ public class JwtProvider {
      * 토큰 생성
      *
      * @param expirationDate Date 만료 시간
-     * @param userId UUID
-     * @param role String
+     * @param userId         UUID
+     * @param role           String
      * @return String
      */
     private String makeToken(Date expirationDate, UUID userId, String role) {
-        return Jwts.builder()
-                .issuer(jwtProperties.getIssuer())
-                .issuedAt(new Date())
-                .expiration(expirationDate)
-                .claim("id", userId)
-                .claim("role", role)
-                .signWith(getSigningKey())
-                .compact();
+        return Jwts.builder().issuer(jwtProperties.getIssuer()).issuedAt(new Date()).expiration(expirationDate)
+                .claim("id", userId).claim("role", role).signWith(getSigningKey()).compact();
     }
 
     /**
@@ -80,11 +74,7 @@ public class JwtProvider {
         Claims claims = getClaims(token);
         Set<SimpleGrantedAuthority> authorities = Collections.singleton(
                 new SimpleGrantedAuthority(claims.get("role", String.class)));
-        return new UsernamePasswordAuthenticationToken(
-                claims.get("id", UUID.class),
-                token,
-                authorities
-        );
+        return new UsernamePasswordAuthenticationToken(claims.get("id", UUID.class), token, authorities);
     }
 
     /**
@@ -94,9 +84,7 @@ public class JwtProvider {
      * @return Claims
      */
     private Claims getClaims(String token) {
-        Jws<Claims> claimsJws = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build().parseSignedClaims(token);
+        Jws<Claims> claimsJws = Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
         return claimsJws.getPayload();
     }
 
