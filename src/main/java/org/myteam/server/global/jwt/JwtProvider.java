@@ -73,8 +73,9 @@ public class JwtProvider {
     public Authentication getAuthentication(final String token) {
         Claims claims = getClaims(token);
         Set<SimpleGrantedAuthority> authorities = Collections.singleton(
-                new SimpleGrantedAuthority(claims.get("role", String.class)));
-        return new UsernamePasswordAuthenticationToken(claims.get("id", UUID.class), token, authorities);
+                new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class)));
+        return new UsernamePasswordAuthenticationToken(UUID.fromString(claims.get("id", String.class)), token,
+                authorities);
     }
 
     /**
