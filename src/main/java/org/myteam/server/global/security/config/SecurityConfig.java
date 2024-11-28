@@ -32,8 +32,11 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable).sessionManagement(
                         sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/h2-console").permitAll().anyRequest()
-                        .permitAll());
+                        .requestMatchers("/h2-console").permitAll()
+                        .requestMatchers("/test/**").authenticated()
+                        .anyRequest().permitAll());
+
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
