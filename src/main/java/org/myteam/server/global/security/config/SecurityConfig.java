@@ -1,8 +1,12 @@
 package org.myteam.server.global.security.config;
 
 import lombok.RequiredArgsConstructor;
-import org.myteam.server.global.jwt.JwtProvider;
+import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.security.filter.TokenAuthenticationFilter;
+import org.myteam.server.oauth2.HttpCookieOAuth2AuthorizationRequestRepository;
+import org.myteam.server.oauth2.handler.OAuth2AuthenticationFailureHandler;
+import org.myteam.server.oauth2.handler.OAuth2AuthenticationSuccessHandler;
+import org.myteam.server.oauth2.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,6 +26,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtProvider jwtProvider;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+    private final HttpCookieOAuth2AuthorizationRequestRepository httpCookieOAuth2AuthorizationRequestRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -34,7 +42,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
                         .requestMatchers("/h2-console").permitAll()
                         .requestMatchers("/test/**").authenticated()
-                        .anyRequest().permitAll());
+                        .anyRequest().permitAll())
+                .oauth2Login(configure ->
+                        configure.authorizationEndpoint(config -> config.authorizationRequestRepository(httpCookieOAuth2AuthorizationRequestRepository))
+                                .userInfoEndpoint(config -> config.userService(customOAuth2UserService))
+                                .successHandler(oAuth2AuthenticationSuccessHandler)
+                                .failureHandler(oAuth2AuthenticationFailureHandler)
+                );
 
         http.addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 

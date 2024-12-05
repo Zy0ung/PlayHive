@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.myteam.server.auth.dto.LoginRequestDto;
 import org.myteam.server.auth.dto.SignupRequestDto;
 import org.myteam.server.auth.dto.TokenResponseDto;
-import org.myteam.server.global.jwt.JwtProvider;
+import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;

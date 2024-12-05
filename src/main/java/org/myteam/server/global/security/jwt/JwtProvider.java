@@ -1,4 +1,4 @@
-package org.myteam.server.global.jwt;
+package org.myteam.server.global.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -45,8 +45,14 @@ public class JwtProvider {
      * @return String
      */
     private String makeToken(Date expirationDate, UUID userId, String role) {
-        return Jwts.builder().issuer(jwtProperties.getIssuer()).issuedAt(new Date()).expiration(expirationDate)
-                .claim("id", userId).claim("role", role).signWith(getSigningKey()).compact();
+        return Jwts.builder()
+                .issuer(jwtProperties.getIssuer())
+                .issuedAt(new Date())
+                .expiration(expirationDate)
+                .claim("id", userId)
+                .claim("role", role)
+                .signWith(getSigningKey())
+                .compact();
     }
 
     /**
