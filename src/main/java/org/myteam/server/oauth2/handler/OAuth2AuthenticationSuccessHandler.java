@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.myteam.server.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.MODE_PARAM_COOKIE_NAME;
 import static org.myteam.server.oauth2.HttpCookieOAuth2AuthorizationRequestRepository.REDIRECT_URI_PARAM_COOKIE_NAME;
@@ -86,13 +87,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     principal.getUserInfo().getAccessToken()
             );
 
-            String email = principal.getUserInfo().getEmail();
-            String name = principal.getUserInfo().getName() == null ? (String) principal.getUserInfo().getAttributes().get("nickname") : principal.getUserInfo().getName();
-            String password = passwordEncoder.encode(principal.getUserInfo().getId());
+            OAuth2Provider registerId = principal.getUserInfo().getProvider();
 
+            String email = principal.getUserInfo().getEmail();
+            String name = registerId.toString() + "_" + principal.getUserInfo().getId();
+            String password = passwordEncoder.encode(UUID.randomUUID().toString());
 
             Member member = null;
-            if (!memberRepository.existsMemberByEmail(email)) {
+            if (!memberRepository.existsMemberByUsername(name)) {
                 log.info("new Member");
                 member = Member.builder()
                         .email(email)
