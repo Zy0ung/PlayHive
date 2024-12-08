@@ -1,6 +1,10 @@
 package org.myteam.server.oauth2.response;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Map;
+
+import static org.myteam.server.oauth2.constant.OAuth2ServiceProvider.NAVER;
 
 public class NaverResponse implements OAuth2Response{
 
@@ -12,21 +16,20 @@ public class NaverResponse implements OAuth2Response{
 
     @Override
     public String getProvider() {
-        return "naver";
+        return NAVER;
     }
 
     @Override
     public String getProviderId() {
-        return attribute.get("id").toString();
+        return StringUtils.defaultString((String) attribute.get("id"), "");
     }
 
     @Override
     public String getEmail() {
-        return attribute.get("email").toString();
+        return StringUtils.defaultString((String)attribute.get("email"), "");
     }
 
-    @Override
     public String getName() {
-        return attribute.get("name").toString();
+        return StringUtils.defaultString((String) attribute.get("name"), "");
     }
 }
