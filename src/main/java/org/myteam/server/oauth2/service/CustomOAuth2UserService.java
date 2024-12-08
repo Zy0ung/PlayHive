@@ -1,54 +1,94 @@
 package org.myteam.server.oauth2.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.myteam.server.oauth2.user.OAuth2UserInfo;
-import org.myteam.server.oauth2.user.OAuth2UserInfoFactory;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.core.AuthenticationException;
+import org.myteam.server.auth.util.PasswordUtil;
+import org.myteam.server.member.domain.MemberRole;
+import org.myteam.server.member.domain.MemberType;
+import org.myteam.server.member.entity.Member;
+import org.myteam.server.member.repository.MemberRepository;
+import org.myteam.server.oauth2.constant.OAuth2ServiceProvider;
+import org.myteam.server.oauth2.dto.CustomOAuth2User;
+import org.myteam.server.oauth2.response.*;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+
+import java.util.Optional;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+    private final MemberRepository memberRepository;
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest request) {
-        log.info("loadUser: {}", request.getAccessToken());
-        OAuth2User oAuth2User = super.loadUser(request);
-
-        // TODO: To Define Exception Handler
-        try {
-            return processOAuth2User(request, oAuth2User);
-        } catch (AuthenticationException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new InternalAuthenticationServiceException(e.getMessage(), e.getCause());
-        }
+    public CustomOAuth2UserService(MemberRepository memberRepository) {
+        this.memberRepository = memberRepository;
     }
 
-    private OAuth2User processOAuth2User(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
+    @Override
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
 
-        String registrationId = userRequest.getClientRegistration()
-                .getRegistrationId(); // google, naver, kakao
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        String accessToken = userRequest.getAccessToken().getTokenValue(); // accesstoken
+        log.info("CustomOAuth2UserService > Oauth2User Request: {}", oAuth2User.toString());
 
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuth2UserInfo(registrationId,
-                accessToken,
-                oAuth2User.getAttributes()); // UserInfo
-        log.info("processOAuth2User: {} {}", registrationId, accessToken);
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        OAuth2Response oAuth2Response = null;
 
-        if (!StringUtils.hasText(oAuth2UserInfo.getEmail())) {
-            // TODO: To Define Exception Handler
-            throw new RuntimeException("Email not found from OAuth2 provider");
+        if (registrationId.equals(OAuth2ServiceProvider.NAVER)) {
+            oAuth2Response = new NaverResponse(oAuth2User.getAttributes());
+        } else if (registrationId.equals(OAuth2ServiceProvider.GOOGLE)) {
+            oAuth2Response = new GoogleResponse(oAuth2User.getAttributes());
+        } else if (registrationId.equals(OAuth2ServiceProvider.DISCORD)) {
+            oAuth2Response = new DiscordResponse(oAuth2User.getAttributes());
+        } else if (registrationId.equals(OAuth2ServiceProvider.KAKAO)) {
+            oAuth2Response = new KakaoResponse(oAuth2User.getAttributes());
+        } else {
+            return null;
         }
 
-        return new OAuth2UserPrincipal(oAuth2UserInfo);
+        //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
+        String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
+        Optional<Member> existDataOP = memberRepository.findByUsername(username);
+
+        if (existDataOP.isPresent()) {
+            // 유저가 이미 존재하는 경우 업데이트 처리
+            log.debug("CustomOAuth2UserService isPresentUser");
+            Member existData = existDataOP.get();
+            log.debug("username : {}", username);
+            log.debug("email : {}", oAuth2Response.getEmail());
+            log.debug("name : {}", oAuth2Response.getName());
+            log.debug("provider : {}", oAuth2Response.getProvider());
+
+            existData.updateEmail(oAuth2Response.getEmail());
+
+            memberRepository.save(existData);
+
+            return new CustomOAuth2User(existData.getUsername(), existData.getRole().toString());
+        } else {
+            // 신규 회원
+            log.debug("CustomOAuth2UserService create NewUser");
+            log.debug("username : {}", username);
+            log.debug("email : {}", oAuth2Response.getEmail());
+            log.debug("name : {}", oAuth2Response.getName());
+            log.debug("MemberType.SOCIAL : {}", MemberType.SOCIAL);
+            log.debug("MemberRole.ROLE_USER : {}", MemberRole.USER);
+            log.debug("registrationId : {}", registrationId);
+
+            Member member = Member.builder()
+                    .name(oAuth2Response.getName())
+                    .username(username)
+                    .email(oAuth2Response.getEmail())
+                    .password(PasswordUtil.generateRandomPassword())
+                    .role(MemberRole.USER)
+                    .type(MemberType.SOCIAL)
+                    .provider(registrationId)
+                    .build();
+
+            memberRepository.save(member);
+
+            return new CustomOAuth2User(username, MemberRole.USER.toString());
+        }
     }
 }

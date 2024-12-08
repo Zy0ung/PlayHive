@@ -3,6 +3,7 @@ package org.myteam.server.auth.dto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.entity.Member;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -20,7 +21,7 @@ public class SignupRequestDto {
     private String email;
 
     public Member toEntity(PasswordEncoder passwordEncoder) {
-        return Member.builder().username(username).password(passwordEncoder.encode(password)).email(email).role("USER")
+        return Member.builder().username(username).password(passwordEncoder.encode(password)).email(email).role(MemberRole.USER)
                 .build();
     }
 }
