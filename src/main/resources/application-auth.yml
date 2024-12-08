@@ -12,8 +12,8 @@ spring:
         registration:
           discord:
             client-name: discord
-            client-id:
-            client-secret:
+            client-id: ${DISCORD_CLIENT_ID}
+            client-secret: ${DISCORD_CLIENT_SECRET}
             client-authentication-method: client_secret_post
             redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
@@ -22,8 +22,8 @@ spring:
               - email
           naver:
             client-name: naver
-            client-id:
-            client-secret:
+            client-id: ${NAVER_CLIENT_ID}
+            client-secret: ${NAVER_CLIENT_SECRET}
             redirect-uri: "{baseUrl}/{action}/oauth2/code/{registrationId}"
             authorization-grant-type: authorization_code
             scope:
@@ -31,15 +31,15 @@ spring:
               - email
           google:
             client-name: google
-            client-id:
-            client-secret:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: # 기본 값 openid,profile,email => profile, email 로 설정 변경
               - profile
               - email
           kakao:
             client-name: kakao
-            client-id:
-            client-secret:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
             client-authentication-method: client_secret_post
             authorization-grant-type: authorization_code
             scope: # https://developers.kakao.com/docs/latest/ko/kakaologin/common#user-info
