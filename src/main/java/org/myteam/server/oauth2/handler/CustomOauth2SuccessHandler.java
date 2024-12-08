@@ -8,6 +8,7 @@ import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberRepository;
 import org.myteam.server.oauth2.dto.CustomOAuth2User;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -22,6 +23,8 @@ import java.util.Iterator;
 @Slf4j
 @Component
 public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
+    @Value("${app.frontend.url.${spring.profiles.active}}")
+    private String frontendUrl;
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final JwtProvider jwtProvider;
@@ -52,7 +55,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().toString());
 
 
-        String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:3000")
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
                 .queryParam(ACCESS_TOKEN_KEY, accessToken)
                 .queryParam(REFRESH_TOKEN_KEY, refreshToken)
                 .build().toUriString();
