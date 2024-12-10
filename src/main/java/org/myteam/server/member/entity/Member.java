@@ -9,7 +9,7 @@ import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberType;
 
 import static org.myteam.server.member.domain.MemberRole.USER;
-import static org.myteam.server.member.domain.MemberType.GENERAL;
+import static org.myteam.server.member.domain.MemberType.LOCAL;
 
 @Entity
 @Table(name = "p_members")
@@ -40,24 +40,24 @@ public class Member {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
-    private MemberType type = GENERAL;
+    private MemberType type = LOCAL;
 
-    @Column
-    private String provider;
+    @Column(name = "provider_id")
+    private String providerId;
 
     //TODO: 적은 확률로 충돌이 일어나는 상황을 방지하는 로직 필요
     @Column(name = "public_id", nullable = false, updatable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID publicId = UUID.randomUUID();
 
     @Builder
-    private Member(String username, String name, String password, String email, MemberRole role, MemberType type, String provider) {
+    private Member(String username, String name, String password, String email, MemberRole role, MemberType type, String providerId) {
         this.username = username;
         this.name = name;
         this.password = password;
         this.email = email;
         this.role = role;
         this.type = type;
-        this.provider = provider;
+        this.providerId = providerId;
     }
 
     @Builder

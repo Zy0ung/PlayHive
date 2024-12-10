@@ -49,14 +49,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
-        String username = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
-        Optional<Member> existDataOP = memberRepository.findByUsername(username);
+        String providerId = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
+        Optional<Member> existDataOP = memberRepository.findByUsername(oAuth2Response.getEmail());
 
         if (existDataOP.isPresent()) {
             // 유저가 이미 존재하는 경우 업데이트 처리
             log.debug("CustomOAuth2UserService isPresentUser");
             Member existData = existDataOP.get();
-            log.debug("username : {}", username);
+            log.debug("providerId : {}", providerId);
             log.debug("email : {}", oAuth2Response.getEmail());
             log.debug("name : {}", oAuth2Response.getName());
             log.debug("provider : {}", oAuth2Response.getProvider());
@@ -69,26 +69,27 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } else {
             // 신규 회원
             log.debug("CustomOAuth2UserService create NewUser");
-            log.debug("username : {}", username);
+            log.debug("providerId : {}", providerId);
             log.debug("email : {}", oAuth2Response.getEmail());
             log.debug("name : {}", oAuth2Response.getName());
-            log.debug("MemberType.SOCIAL : {}", MemberType.SOCIAL);
+            log.debug("MemberType.SOCIAL : {}", MemberType.LOCAL);
             log.debug("MemberRole.ROLE_USER : {}", MemberRole.USER);
+            log.debug("Provider() : {}", oAuth2Response.getProvider());
             log.debug("registrationId : {}", registrationId);
 
             Member member = Member.builder()
                     .name(oAuth2Response.getName())
-                    .username(username)
+                    .username(oAuth2Response.getEmail())
                     .email(oAuth2Response.getEmail())
                     .password(PasswordUtil.generateRandomPassword())
                     .role(MemberRole.USER)
-                    .type(MemberType.SOCIAL)
-                    .provider(registrationId)
+                    .type(MemberType.fromOAuth2Provider(oAuth2Response.getProvider()))
+                    .providerId(providerId)
                     .build();
 
             memberRepository.save(member);
 
-            return new CustomOAuth2User(username, MemberRole.USER.toString());
+            return new CustomOAuth2User(oAuth2Response.getEmail(), MemberRole.USER.toString());
         }
     }
 }
