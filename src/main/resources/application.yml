@@ -1,6 +1,6 @@
 spring:
   profiles:
     active: dev
-    include: auth
+    include: auth, swagger
   application:
     name: myteam-server
