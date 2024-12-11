@@ -1,5 +1,6 @@
 package org.myteam.server.global.security.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.myteam.server.global.jwt.JwtProvider;
 import org.myteam.server.global.security.filter.TokenAuthenticationFilter;
@@ -26,15 +27,29 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http.headers(headers -> headers.httpStrictTransportSecurity(HstsConfig::disable)
-                        .frameOptions(FrameOptionsConfig::disable)).csrf(AbstractHttpConfigurer::disable)
+        http.headers(headers ->
+                        headers.httpStrictTransportSecurity(HstsConfig::disable)
+                                .frameOptions(FrameOptionsConfig::disable))
+                .csrf(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable)
                 .logout(AbstractHttpConfigurer::disable).sessionManagement(
                         sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/h2-console").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/test/**").authenticated()
-                        .anyRequest().permitAll());
+                        .anyRequest().authenticated())
+                .exceptionHandling(exceptionHandling ->
+                        exceptionHandling
+                                .authenticationEntryPoint((request, response, authException) -> {
+                                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                                })
+                                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                                    response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+                                })
+                );
 
         http.addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
 
