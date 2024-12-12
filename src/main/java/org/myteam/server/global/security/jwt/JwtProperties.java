@@ -1,4 +1,4 @@
-package org.myteam.server.global.jwt;
+package org.myteam.server.global.security.jwt;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.myteam.server.auth.dto.LoginRequestDto;
 import org.myteam.server.auth.dto.SignupRequestDto;
 import org.myteam.server.auth.dto.TokenResponseDto;
-import org.myteam.server.global.jwt.JwtProvider;
+import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,8 +33,8 @@ public class AuthService {
         }
 
         //토큰 생성
-        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole());
-        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole());
+        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole().toString());
+        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().toString());
 
         return TokenResponseDto.of(accessToken, refreshToken);
     }
@@ -46,8 +46,8 @@ public class AuthService {
         memberRepository.save(member);
 
         //토큰 생성
-        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole());
-        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole());
+        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole().toString());
+        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().toString());
 
         return TokenResponseDto.of(accessToken, refreshToken);
 
