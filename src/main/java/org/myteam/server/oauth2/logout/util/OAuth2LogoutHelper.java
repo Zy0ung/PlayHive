@@ -1,6 +1,8 @@
 package org.myteam.server.oauth2.logout.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.exception.ErrorCode;
+import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.http.config.RestTemplateConfig;
 import org.myteam.server.oauth2.config.OAuth2Config;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +39,7 @@ public class OAuth2LogoutHelper {
 
         String logoutUrl = LOGOUT_URLS.get(provider);
         if (logoutUrl == null) {
-            throw new IllegalArgumentException("지원하지 않는 OAuth2 provider: " + provider);
+            throw new PlayHiveException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER, provider);
         }
 
         Map<String, String> uriVariables = new HashMap<>();
@@ -57,7 +59,7 @@ public class OAuth2LogoutHelper {
         try {
             restTemplate.postForObject(resolvedLogoutUrl, null, String.class);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to revoke token: " + e.getMessage(), e);
+            throw new PlayHiveException(ErrorCode.API_SERVER_ERROR, e.getMessage());
         }
     }
 }

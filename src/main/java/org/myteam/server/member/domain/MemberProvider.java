@@ -2,6 +2,8 @@ package org.myteam.server.member.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.myteam.server.global.exception.ErrorCode;
+import org.myteam.server.global.exception.PlayHiveException;
 
 @AllArgsConstructor
 @Getter
@@ -16,6 +18,6 @@ public enum MemberProvider {
                 return provider;
             }
         }
-        throw new IllegalArgumentException("No enum constant with value: " + value);
+        throw new PlayHiveException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER, value);
     }
 }

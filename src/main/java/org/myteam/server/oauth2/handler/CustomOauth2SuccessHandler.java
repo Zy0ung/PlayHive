@@ -4,6 +4,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.exception.ErrorCode;
+import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberRepository;
@@ -34,7 +36,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         this.memberRepository = memberRepository;
     }
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         log.info("onAuthenticationSuccess : Oauth 로그인 성공");
         CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
         String username = customUserDetails.getUsername();
@@ -46,7 +48,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         log.info("onAuthenticationSuccess role: {}", role);
         //유저확인
         Member member = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new PlayHiveException(ErrorCode.USER_NOT_FOUND));
         log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
         log.info("onAuthenticationSuccess role: {}", member.getRole());
         // Authorization

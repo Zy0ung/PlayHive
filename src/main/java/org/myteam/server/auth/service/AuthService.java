@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import org.myteam.server.auth.dto.LoginRequestDto;
 import org.myteam.server.auth.dto.SignupRequestDto;
 import org.myteam.server.auth.dto.TokenResponseDto;
+import org.myteam.server.global.exception.ErrorCode;
+import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberRepository;
@@ -25,11 +27,11 @@ public class AuthService {
 
         //유저확인
         Member member = memberRepository.findByUsername(requestDto.getUsername())
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new PlayHiveException(ErrorCode.USER_NOT_FOUND));
 
         //비밀번호 확인
         if (!passwordEncoder.matches(requestDto.getPassword(), member.getPassword())) {
-            throw new RuntimeException("Password not matched");
+            throw new PlayHiveException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         //토큰 생성
