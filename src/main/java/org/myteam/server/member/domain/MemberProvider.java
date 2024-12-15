@@ -18,6 +18,6 @@ public enum MemberProvider {
                 return provider;
             }
         }
-        throw new PlayHiveException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER, value);
+        throw new PlayHiveException(value);
     }
 }

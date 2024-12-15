@@ -25,7 +25,7 @@ public class OAuth2Config {
             case GOOGLE:
                 return properties.getGoogle().getClientId();
             default:
-                throw new PlayHiveException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER, provider);
+                throw new PlayHiveException(provider);
         }
     }
 
@@ -40,7 +40,7 @@ public class OAuth2Config {
             case GOOGLE:
                 return properties.getGoogle().getClientSecret();
             default:
-                throw new PlayHiveException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER, provider);
+                throw new PlayHiveException(provider);
         }
     }
 }

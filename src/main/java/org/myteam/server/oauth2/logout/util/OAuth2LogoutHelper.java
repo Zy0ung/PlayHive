@@ -39,7 +39,7 @@ public class OAuth2LogoutHelper {
 
         String logoutUrl = LOGOUT_URLS.get(provider);
         if (logoutUrl == null) {
-            throw new PlayHiveException(ErrorCode.UNSUPPORTED_OAUTH_PROVIDER, provider);
+            throw new PlayHiveException(provider);
         }
 
         Map<String, String> uriVariables = new HashMap<>();
@@ -59,7 +59,7 @@ public class OAuth2LogoutHelper {
         try {
             restTemplate.postForObject(resolvedLogoutUrl, null, String.class);
         } catch (Exception e) {
-            throw new PlayHiveException(ErrorCode.API_SERVER_ERROR, e.getMessage());
+            throw new PlayHiveException(ErrorCode.API_SERVER_ERROR);
         }
     }
 }
