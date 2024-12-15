@@ -23,6 +23,24 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    /* 권한 제외 대상 */
+    private static final String[] permitAllUrl = new String[]{
+            /** @brief test */"/test/exception-test",
+            /** @brief Swagger Docs */ "/v3/api-docs/**", "/swagger-ui/**",
+            /** @brief database url */ "/h2-console",
+            /** @brief about login */ "/auth/**",
+    };
+
+    /* Admin 접근 권한 */
+    private static final String[] permitAdminUrl = new String[]{
+            /** @brief Check Access Admin */ "/test/manager-access-test/**",
+    };
+
+    /* member 접근 권한 */
+    private static final String[] permitMemberUrl = new String[]{
+            "/test/user-access-test/**",
+    };
+
     private final JwtProvider jwtProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2SuccessHandler customOauth2SuccessHandler;
@@ -36,9 +54,9 @@ public class SecurityConfig {
                 .logout(AbstractHttpConfigurer::disable).sessionManagement(
                         sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorizeRequests -> authorizeRequests
-                        .requestMatchers("/h2-console").permitAll()
-                        .requestMatchers("/test/**").authenticated()
-                        .anyRequest().permitAll())
+                        .requestMatchers(permitAllUrl).permitAll()
+                        .requestMatchers(permitAdminUrl).hasRole("ADMIN")
+                        .anyRequest().authenticated())
 
 
                 .oauth2Login(oauth2 -> oauth2
