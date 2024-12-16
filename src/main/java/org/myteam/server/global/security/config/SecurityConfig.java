@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.security.filter.TokenAuthenticationFilter;
 import org.myteam.server.oauth2.handler.CustomOauth2SuccessHandler;
+import org.myteam.server.oauth2.handler.OAuth2LoginFailureHandler;
 import org.myteam.server.oauth2.service.CustomOAuth2UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,6 +27,7 @@ public class SecurityConfig {
     private final JwtProvider jwtProvider;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2SuccessHandler customOauth2SuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -45,7 +47,7 @@ public class SecurityConfig {
                                         .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
                                                 .userService(customOAuth2UserService))
                                         .successHandler(customOauth2SuccessHandler)
-//                                .failureHandler()
+                                        .failureHandler(oAuth2LoginFailureHandler)
                 );
 
         http.addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
