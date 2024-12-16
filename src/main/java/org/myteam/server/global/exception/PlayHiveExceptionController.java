@@ -10,7 +10,7 @@ public class PlayHiveExceptionController {
     @ExceptionHandler(value = {PlayHiveException.class})
     public ResponseEntity<?> serviceException(PlayHiveException e) {
         return ResponseEntity
-                .badRequest()
+                .status(e.getErrorCode().getStatus())
                 .body(new ErrorResponse(e.getErrorCode().getStatus(), e.getMessage()));
     }
 }
