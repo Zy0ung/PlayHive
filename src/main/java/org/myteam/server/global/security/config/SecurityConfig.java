@@ -1,6 +1,7 @@
 package org.myteam.server.global.security.config;
 
 import lombok.RequiredArgsConstructor;
+import org.myteam.server.global.config.WebConfig;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.security.filter.TokenAuthenticationFilter;
 import org.myteam.server.oauth2.handler.CustomOauth2SuccessHandler;
@@ -43,6 +44,7 @@ public class SecurityConfig {
     };
 
     private final JwtProvider jwtProvider;
+    private final WebConfig webConfig;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2SuccessHandler customOauth2SuccessHandler;
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
@@ -68,7 +70,8 @@ public class SecurityConfig {
                                         .failureHandler(oAuth2LoginFailureHandler)
                 );
 
-        http.addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
+                .addFilter(webConfig.corsFilter());
 
         return http.build();
     }
