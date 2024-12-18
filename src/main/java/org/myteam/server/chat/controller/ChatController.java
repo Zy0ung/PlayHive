@@ -6,6 +6,7 @@ import org.myteam.server.chat.domain.Chat;
 import org.myteam.server.chat.domain.ChatRoom;
 import org.myteam.server.chat.dto.ChatMessage;
 import org.myteam.server.chat.service.ChatService;
+import org.myteam.server.filter.dto.FilterDataRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -57,5 +58,15 @@ public class ChatController {
         List<ChatRoom> chatRooms = chatService.findAllRoom();
 
         return ResponseEntity.ok(chatRooms);
+    }
+
+    @PostMapping("/chat/filter")
+    @ResponseBody
+    public ResponseEntity<?> addFilterData(@RequestBody FilterDataRequest filterData) {
+        log.info("addFilterData: {}", filterData);
+
+        chatService.addFilteredWord(filterData.getFilterData());
+
+        return ResponseEntity.ok("add filter Data");
     }
 }

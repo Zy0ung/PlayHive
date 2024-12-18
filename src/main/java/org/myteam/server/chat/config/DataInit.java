@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.chat.domain.ChatRoom;
 import org.myteam.server.chat.repository.ChatRoomRepository;
+import org.myteam.server.filter.domain.FilterData;
+import org.myteam.server.filter.repository.FilterDataRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class DataInit implements CommandLineRunner {
 
     private final ChatRoomRepository repository;
+    private final FilterDataRepository filterDataRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -24,6 +27,12 @@ public class DataInit implements CommandLineRunner {
         repository.save(chatRoom1);
         repository.save(chatRoom2);
         repository.save(chatRoom3);
+
+        FilterData filterData1 = new FilterData("맹구");
+        FilterData filterData2 = new FilterData("닭트넘");
+
+        filterDataRepository.save(filterData1);
+        filterDataRepository.save(filterData2);
 
         log.info("데이터 초기화 완료");
     }
