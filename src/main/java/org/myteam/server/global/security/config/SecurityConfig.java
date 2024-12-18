@@ -31,6 +31,7 @@ public class SecurityConfig {
             /** @brief Swagger Docs */ "/v3/api-docs/**", "/swagger-ui/**",
             /** @brief database url */ "/h2-console",
             /** @brief about login */ "/auth/**",
+            "/ws-stomp/**"
     };
 
     /* Admin 접근 권한 */
