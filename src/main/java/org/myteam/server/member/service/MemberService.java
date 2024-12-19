@@ -7,6 +7,7 @@ import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberJpaRepository;
+import org.myteam.server.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,12 +20,13 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class MemberService {
+public class MemberService implements MemberRepository {
 
     private final MemberJpaRepository memberJpaRepository;
 
     private final PasswordEncoder passwordEncoder;
 
+    @Override
     @Transactional
     public MemberResponse create(MemberSaveRequest memberSaveRequest) {
         // 1. 동일한 유저 이름 존재 검사
@@ -42,6 +44,7 @@ public class MemberService {
         return new MemberResponse(member);
     }
 
+    @Override
     @Transactional
     public MemberResponse update(String email, MemberUpdateRequest memberUpdateRequest) {
         // 1. 동일한 유저 이름 존재 검사
@@ -65,16 +68,19 @@ public class MemberService {
         return new MemberResponse(member);
     }
 
+    @Override
     public Member getByEmail(String email) {
         return memberJpaRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(email + " 는 존재하지 않는 사용자 입니다"));
     }
 
+    @Override
     public MemberResponse getByPublicId(UUID publicId) {
         return new MemberResponse(memberJpaRepository.findByPublicId(publicId)
                         .orElseThrow(() -> new RuntimeException(publicId + " 는 존재하지 않는 PublicId 입니다")));
     }
 
+    @Override
     @Transactional
     public void delete(String email, String password) {
         Member findMember = getByEmail(email);
@@ -83,10 +89,12 @@ public class MemberService {
         memberJpaRepository.delete(findMember);
     }
 
+    @Override
     public List<Member> list() {
         return Optional.of(memberJpaRepository.findAll()).orElse(Collections.emptyList());
     }
 
+    @Override
     @Transactional
     public void changePassword(String email, PasswordChangeRequest passwordChangeRequest) {
         Member findMember = getByEmail(email);
