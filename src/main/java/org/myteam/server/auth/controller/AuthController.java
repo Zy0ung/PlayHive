@@ -1,17 +1,22 @@
 package org.myteam.server.auth.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.tags.Tags;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.auth.dto.LoginRequestDto;
 import org.myteam.server.auth.dto.SignupRequestDto;
 import org.myteam.server.auth.dto.TokenResponseDto;
 import org.myteam.server.auth.service.AuthService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Slf4j
+@Tags(value = @Tag(name = "AuthController", description = "로그인 로그아웃"))
 @RestController
 @RequestMapping("/auth")
 @RequiredArgsConstructor
@@ -19,15 +24,14 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(summary = "로그인", security = {})
     @PostMapping("/login")
-    public TokenResponseDto login(@RequestBody LoginRequestDto requestDto) {
-        log.info("login");
-        return authService.login(requestDto);
+    public ResponseEntity<TokenResponseDto> login(@RequestBody LoginRequestDto requestDto) {
+        return ResponseEntity.ok(authService.login(requestDto));
     }
 
     @PostMapping("/signup")
-    public TokenResponseDto signup(@RequestBody SignupRequestDto requestDto) {
-        log.info("signup");
-        return authService.signup(requestDto);
+    public ResponseEntity<TokenResponseDto> signup(@RequestBody SignupRequestDto requestDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.signup(requestDto));
     }
 }
