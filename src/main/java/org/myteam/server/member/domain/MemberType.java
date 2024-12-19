@@ -2,7 +2,6 @@ package org.myteam.server.member.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.oauth2.constant.OAuth2ServiceProvider;
 

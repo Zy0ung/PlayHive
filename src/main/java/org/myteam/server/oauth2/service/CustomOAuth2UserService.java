@@ -1,7 +1,7 @@
 package org.myteam.server.oauth2.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.myteam.server.auth.util.PasswordUtil;
+import org.myteam.server.global.security.util.PasswordUtil;
 import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.entity.Member;
@@ -16,6 +16,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -50,7 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
         String providerId = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
-        Optional<Member> existDataOP = memberRepository.findByUsername(oAuth2Response.getEmail());
+        Optional<Member> existDataOP = memberRepository.findByEmail(oAuth2Response.getEmail());
 
         if (existDataOP.isPresent()) {
             // 유저가 이미 존재하는 경우 업데이트 처리
@@ -65,7 +66,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             memberRepository.save(existData);
 
-            return new CustomOAuth2User(existData.getUsername(), existData.getRole().toString());
+            return new CustomOAuth2User(existData.getEmail(), existData.getRole().toString());
         } else {
             // 신규 회원
             log.debug("CustomOAuth2UserService create NewUser");
@@ -78,13 +79,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.debug("registrationId : {}", registrationId);
 
             Member member = Member.builder()
-                    .name(oAuth2Response.getName())
-                    .username(oAuth2Response.getEmail())
                     .email(oAuth2Response.getEmail())
                     .password(PasswordUtil.generateRandomPassword())
+                    .name(oAuth2Response.getName())
                     .role(MemberRole.USER)
+                    .tel("01023232122") // TODO_ : 추후 정리 필요
+                    .publicId(UUID.randomUUID()) // TODO_ : 추후 정리 필요
                     .type(MemberType.fromOAuth2Provider(oAuth2Response.getProvider()))
-                    .providerId(providerId)
                     .build();
 
             memberRepository.save(member);
