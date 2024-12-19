@@ -5,7 +5,7 @@ import org.myteam.server.global.security.util.PasswordUtil;
 import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.entity.Member;
-import org.myteam.server.member.repository.MemberRepository;
+import org.myteam.server.member.repository.MemberJpaRepository;
 import org.myteam.server.oauth2.constant.OAuth2ServiceProvider;
 import org.myteam.server.oauth2.dto.CustomOAuth2User;
 import org.myteam.server.oauth2.response.*;
@@ -21,10 +21,10 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-    private final MemberRepository memberRepository;
+    private final MemberJpaRepository memberJpaRepository;
 
-    public CustomOAuth2UserService(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
+    public CustomOAuth2UserService(MemberJpaRepository memberJpaRepository) {
+        this.memberJpaRepository = memberJpaRepository;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         //리소스 서버에서 발급 받은 정보로 사용자를 특정할 아이디값을 만듬
         String providerId = oAuth2Response.getProvider() + " " + oAuth2Response.getProviderId();
-        Optional<Member> existDataOP = memberRepository.findByEmail(oAuth2Response.getEmail());
+        Optional<Member> existDataOP = memberJpaRepository.findByEmail(oAuth2Response.getEmail());
 
         if (existDataOP.isPresent()) {
             // 유저가 이미 존재하는 경우 업데이트 처리
@@ -64,7 +64,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             existData.updateEmail(oAuth2Response.getEmail());
 
-            memberRepository.save(existData);
+            memberJpaRepository.save(existData);
 
             return new CustomOAuth2User(existData.getEmail(), existData.getRole().toString());
         } else {
@@ -91,7 +91,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .type(MemberType.fromOAuth2Provider(oAuth2Response.getProvider()))
                     .build();
 
-            memberRepository.save(member);
+            memberJpaRepository.save(member);
 
             return new CustomOAuth2User(oAuth2Response.getEmail(), MemberRole.USER.toString());
         }

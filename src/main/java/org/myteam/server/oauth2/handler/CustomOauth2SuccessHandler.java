@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.entity.Member;
-import org.myteam.server.member.repository.MemberRepository;
+import org.myteam.server.member.repository.MemberJpaRepository;
 import org.myteam.server.oauth2.dto.CustomOAuth2User;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,10 +24,10 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final JwtProvider jwtProvider;
-    private final MemberRepository memberRepository;
-    public CustomOauth2SuccessHandler(JwtProvider jwtProvider, MemberRepository memberRepository) {
+    private final MemberJpaRepository memberJpaRepository;
+    public CustomOauth2SuccessHandler(JwtProvider jwtProvider, MemberJpaRepository memberJpaRepository) {
         this.jwtProvider = jwtProvider;
-        this.memberRepository = memberRepository;
+        this.memberJpaRepository = memberJpaRepository;
     }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -41,7 +41,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         log.info("onAuthenticationSuccess email: {}", email);
         log.info("onAuthenticationSuccess role: {}", role);
         //유저확인
-        Member member = memberRepository.findByEmail(email)
+        Member member = memberJpaRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Member not found"));
         log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
         log.info("onAuthenticationSuccess role: {}", member.getRole());

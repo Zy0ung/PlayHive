@@ -6,7 +6,7 @@ import org.myteam.server.member.dto.MemberResponse;
 import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
-import org.myteam.server.member.repository.MemberRepository;
+import org.myteam.server.member.repository.MemberJpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,14 +21,14 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private final MemberRepository memberRepository;
+    private final MemberJpaRepository memberJpaRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public MemberResponse create(MemberSaveRequest memberSaveRequest) {
         // 1. 동일한 유저 이름 존재 검사
-        Optional<Member> memberOP = memberRepository.findByEmail(memberSaveRequest.getEmail());
+        Optional<Member> memberOP = memberJpaRepository.findByEmail(memberSaveRequest.getEmail());
 
         if (memberOP.isPresent()) {
             // 아이디가 중복 되었다는 것
@@ -36,7 +36,7 @@ public class MemberService {
         }
 
         // 2. 패스워드인코딩 + 회원 가입
-        Member member = memberRepository.save(new Member(memberSaveRequest, passwordEncoder));
+        Member member = memberJpaRepository.save(new Member(memberSaveRequest, passwordEncoder));
 
         // 4. dto 응답
         return new MemberResponse(member);
@@ -45,7 +45,7 @@ public class MemberService {
     @Transactional
     public MemberResponse update(String email, MemberUpdateRequest memberUpdateRequest) {
         // 1. 동일한 유저 이름 존재 검사
-        Optional<Member> memberOP = memberRepository.findByEmail(email);
+        Optional<Member> memberOP = memberJpaRepository.findByEmail(email);
 
         // 2. 아이디 미존재 체크
         if (memberOP.isEmpty()) {
@@ -66,12 +66,12 @@ public class MemberService {
     }
 
     public Member getByEmail(String email) {
-        return memberRepository.findByEmail(email)
+        return memberJpaRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(email + " 는 존재하지 않는 사용자 입니다"));
     }
 
     public MemberResponse getByPublicId(UUID publicId) {
-        return new MemberResponse(memberRepository.findByPublicId(publicId)
+        return new MemberResponse(memberJpaRepository.findByPublicId(publicId)
                         .orElseThrow(() -> new RuntimeException(publicId + " 는 존재하지 않는 PublicId 입니다")));
     }
 
@@ -80,11 +80,11 @@ public class MemberService {
         Member findMember = getByEmail(email);
         boolean isValid = findMember.validatePassword(password, passwordEncoder);
         if (!isValid) throw new RuntimeException("비밀번호가 일치하지 않습니다.");
-        memberRepository.delete(findMember);
+        memberJpaRepository.delete(findMember);
     }
 
     public List<Member> list() {
-        return Optional.of(memberRepository.findAll()).orElse(Collections.emptyList());
+        return Optional.of(memberJpaRepository.findAll()).orElse(Collections.emptyList());
     }
 
     @Transactional
