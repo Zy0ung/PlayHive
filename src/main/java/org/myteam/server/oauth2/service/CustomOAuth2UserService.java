@@ -84,6 +84,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .name(oAuth2Response.getName())
                     .role(MemberRole.USER)
                     .tel("01023232122") // TODO_ : 추후 정리 필요
+                    .nickname(null) // TODO_ : 추후 정리 필요
+                    .gender(null) // TODO_ : 추후 정리 필요
+                    .birthdate(null) // TODO_ : 추후 정리 필요
                     .publicId(UUID.randomUUID()) // TODO_ : 추후 정리 필요
                     .type(MemberType.fromOAuth2Provider(oAuth2Response.getProvider()))
                     .build();

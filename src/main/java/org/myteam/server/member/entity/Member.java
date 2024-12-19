@@ -2,10 +2,12 @@ package org.myteam.server.member.entity;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.member.domain.GenderType;
 import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.dto.MemberSaveRequest;
@@ -32,14 +34,21 @@ public class Member {
     @Column(nullable = false, length = 60) // 패스워드 인코딩(BCrypt)
     private String password; // 비밀번호
 
-//    @Column(nullable = false, length = 20)
-//    private String name; // 이름
-
     @Column(nullable = false, length = 11)
     private String tel;
 
     @Column(nullable = false, length = 60)
     private String name;
+
+    @Column(nullable = false, length = 60)
+    private String nickname;
+
+    // YYYY-MM-dd 형식
+    @Column(name = "birth_date")
+    private LocalDate birthdate;
+
+    @Column(name = "gender")
+    private GenderType gender;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
@@ -50,15 +59,18 @@ public class Member {
     private MemberType type = LOCAL;
 
     @Column(name = "public_id", nullable = false, updatable = false, unique = true, columnDefinition = "BINARY(16)")
-    private UUID publicId = UUID.randomUUID();
+    private UUID publicId;
 
     @Builder
-    public Member(Long id, String email, String password, String tel, String name, MemberRole role, MemberType type, UUID publicId) {
+    public Member(Long id, String email, String password, String tel, String name, String nickname, LocalDate birthdate, GenderType gender, MemberRole role, MemberType type, UUID publicId) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.tel = tel;
         this.name = name;
+        this.nickname = nickname;
+        this.birthdate = birthdate;
+        this.gender = gender;
         this.role = role;
         this.type = type;
         this.publicId = publicId;
@@ -70,6 +82,9 @@ public class Member {
         this.password = passwordEncoder.encode(memberSaveRequest.getPassword());
         this.tel = memberSaveRequest.getTel();
         this.name = memberSaveRequest.getName();
+        this.nickname = memberSaveRequest.getNickname();
+        this.gender = GenderType.fromValue(memberSaveRequest.getGender());
+        this.birthdate = memberSaveRequest.getBirthdate();
     }
 
     // 전체 업데이트 메서드
@@ -78,6 +93,9 @@ public class Member {
         // this.password = passwordEncoder.encode(memberUpdateRequest.getPassword()); // 비밀번호 변경 시 암호화 필요
         this.name = memberUpdateRequest.getName();
         this.tel = memberUpdateRequest.getTel();
+        this.nickname= memberUpdateRequest.getNickname();
+        this.gender = GenderType.fromValue(memberUpdateRequest.getGender());
+        this.birthdate = memberUpdateRequest.getBirthdate();
     }
 
     public void updatePassword(PasswordChangeRequest passwordChangeRequest, PasswordEncoder passwordEncoder) {

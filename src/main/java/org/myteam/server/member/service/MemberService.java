@@ -72,7 +72,7 @@ public class MemberService {
 
     public MemberResponse getByPublicId(UUID publicId) {
         return new MemberResponse(memberRepository.findByPublicId(publicId)
-                        .orElseThrow(() -> new RuntimeException(publicId + " 는 존재하지 않는 사용자 입니다")));
+                        .orElseThrow(() -> new RuntimeException(publicId + " 는 존재하지 않는 PublicId 입니다")));
     }
 
     @Transactional
