@@ -3,6 +3,8 @@ package org.myteam.server.oauth2.response;
 import java.util.Collections;
 import java.util.Map;
 
+import static org.myteam.server.oauth2.constant.OAuth2ServiceProvider.KAKAO;
+
 public class KakaoResponse implements OAuth2Response {
 
     private final Map<String, Object> attribute;
@@ -16,7 +18,7 @@ public class KakaoResponse implements OAuth2Response {
 
     @Override
     public String getProvider() {
-        return "kakao";
+        return KAKAO;
     }
 
     public Map<String, Object> kakaoAccount() {
