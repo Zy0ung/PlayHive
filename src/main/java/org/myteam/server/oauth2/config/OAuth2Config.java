@@ -1,7 +1,6 @@
 package org.myteam.server.oauth2.config;
 
 import lombok.RequiredArgsConstructor;
-import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.oauth2.properties.OAuth2ClientProperties;
 import org.springframework.context.annotation.Configuration;

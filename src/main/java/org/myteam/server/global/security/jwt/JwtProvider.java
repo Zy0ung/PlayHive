@@ -27,29 +27,29 @@ public class JwtProvider {
      * 토큰 발급
      *
      * @param duration Duration 만료 기간
-     * @param userId   UUID
+     * @param publicId   UUID
      * @param role     String
      * @return String
      */
-    public String generateToken(Duration duration, UUID userId, String role) {
+    public String generateToken(Duration duration, UUID publicId, String role) {
         Date now = new Date();
-        return makeToken(new Date(now.getTime() + duration.toMillis()), userId, role);
+        return makeToken(new Date(now.getTime() + duration.toMillis()), publicId, role);
     }
 
     /**
      * 토큰 생성
      *
      * @param expirationDate Date 만료 시간
-     * @param userId         UUID
+     * @param publicId         UUID
      * @param role           String
      * @return String
      */
-    private String makeToken(Date expirationDate, UUID userId, String role) {
+    private String makeToken(Date expirationDate, UUID publicId, String role) {
         return Jwts.builder()
                 .issuer(jwtProperties.getIssuer())
                 .issuedAt(new Date())
                 .expiration(expirationDate)
-                .claim("id", userId)
+                .claim("id", publicId)
                 .claim("role", role)
                 .signWith(getSigningKey())
                 .compact();
@@ -82,6 +82,29 @@ public class JwtProvider {
                 new SimpleGrantedAuthority("ROLE_" + claims.get("role", String.class)));
         return new UsernamePasswordAuthenticationToken(UUID.fromString(claims.get("id", String.class)), token,
                 authorities);
+    }
+
+    /**
+     * 토큰으로부터 사용자 publicId를 추출
+     *
+     * @param token String
+     * @return UUID
+     */
+    public UUID getPublicId(final String token) {
+        Claims claims = getClaims(token);
+        String idString = claims.get("id", String.class);
+        return UUID.fromString(idString);
+    }
+
+    /**
+     * 토큰으로부터 사용자 권한(Authorities)을 추출
+     *
+     * @param token String
+     * @return Set<SimpleGrantedAuthority>
+     */
+    public String getRole(final String token) {
+        Claims claims = getClaims(token);
+        return claims.get("role", String.class);
     }
 
     /**

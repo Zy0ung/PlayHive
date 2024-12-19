@@ -10,6 +10,7 @@ import java.util.Map;
 
 @Getter
 public class CustomOAuth2User implements OAuth2User {
+    private final String NOT_USED = "Not Used";
     private String username;
     private String role;
     public CustomOAuth2User(String username, String role) {
@@ -35,9 +36,10 @@ public class CustomOAuth2User implements OAuth2User {
         });
         return collection;
     }
+
+    // 미사용
     @Override
     public String getName() {
-//        return this.username;
-        return "randomID";
+        return NOT_USED;
     }
 }
