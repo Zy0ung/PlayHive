@@ -9,6 +9,7 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.member.domain.GenderType;
 import org.myteam.server.member.domain.MemberRole;
+import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.dto.MemberSaveRequest;
 import org.myteam.server.member.dto.MemberUpdateRequest;
@@ -47,6 +48,7 @@ public class Member {
     @Column(name = "birth_date")
     private LocalDate birthdate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private GenderType gender;
 
@@ -61,8 +63,12 @@ public class Member {
     @Column(name = "public_id", nullable = false, updatable = false, unique = true, columnDefinition = "BINARY(16)")
     private UUID publicId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private MemberStatus status;
+
     @Builder
-    public Member(Long id, String email, String password, String tel, String name, String nickname, LocalDate birthdate, GenderType gender, MemberRole role, MemberType type, UUID publicId) {
+    public Member(Long id, String email, String password, String tel, String name, String nickname, LocalDate birthdate, GenderType gender, MemberRole role, MemberType type, UUID publicId, MemberStatus status) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -74,6 +80,7 @@ public class Member {
         this.role = role;
         this.type = type;
         this.publicId = publicId;
+        this.status = status;
     }
 
     @Builder

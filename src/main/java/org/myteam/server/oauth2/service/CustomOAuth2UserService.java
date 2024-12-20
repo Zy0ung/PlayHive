@@ -18,6 +18,9 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.myteam.server.member.domain.MemberRole.USER;
+import static org.myteam.server.member.domain.MemberStatus.PENDING;
+
 @Slf4j
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -64,8 +67,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             existData.updateEmail(oAuth2Response.getEmail());
 
-            memberJpaRepository.save(existData);
-
             return new CustomOAuth2User(existData.getEmail(), existData.getRole().toString());
         } else {
             // 신규 회원
@@ -74,7 +75,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.debug("email : {}", oAuth2Response.getEmail());
             log.debug("name : {}", oAuth2Response.getName());
             log.debug("MemberType.SOCIAL : {}", MemberType.LOCAL);
-            log.debug("MemberRole.ROLE_USER : {}", MemberRole.USER);
+            log.debug("MemberRole.ROLE_USER : {}", USER);
             log.debug("Provider() : {}", oAuth2Response.getProvider());
             log.debug("registrationId : {}", registrationId);
 
@@ -82,18 +83,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .email(oAuth2Response.getEmail())
                     .password(PasswordUtil.generateRandomPassword())
                     .name(oAuth2Response.getName())
-                    .role(MemberRole.USER)
-                    .tel("01023232122") // TODO_ : 추후 정리 필요
-                    .nickname(null) // TODO_ : 추후 정리 필요
-                    .gender(null) // TODO_ : 추후 정리 필요
-                    .birthdate(null) // TODO_ : 추후 정리 필요
-                    .publicId(UUID.randomUUID()) // TODO_ : 추후 정리 필요
+                    .role(USER)
+                    .tel(oAuth2Response.getTel()) // 데이터 없을 시 "" 처리 함
+                    .nickname(oAuth2Response.getNickname())
+                    .gender(oAuth2Response.getGender())
+                    .birthdate(oAuth2Response.getBirthdate())
+                    .publicId(UUID.randomUUID())
+                    .status(PENDING)
                     .type(MemberType.fromOAuth2Provider(oAuth2Response.getProvider()))
                     .build();
 
             memberJpaRepository.save(member);
-
-            return new CustomOAuth2User(oAuth2Response.getEmail(), MemberRole.USER.toString());
+            return new CustomOAuth2User(oAuth2Response.getEmail(), USER.toString());
         }
     }
 }

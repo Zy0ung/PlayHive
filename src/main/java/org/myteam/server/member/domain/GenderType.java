@@ -7,7 +7,7 @@ import org.myteam.server.global.exception.PlayHiveException;
 @AllArgsConstructor
 @Getter
 public enum GenderType {
-    MALE("MALE"), FEMALE("FEMALE");
+    M("MALE"), F("FEMALE");
     private String value;
 
     public static GenderType fromValue(String value) {
