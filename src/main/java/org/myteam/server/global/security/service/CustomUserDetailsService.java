@@ -3,7 +3,7 @@ package org.myteam.server.global.security.service;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.member.entity.Member;
-import org.myteam.server.member.repository.MemberRepository;
+import org.myteam.server.member.repository.MemberJpaRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,9 +14,9 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class CustomUserDetailsService implements UserDetailsService {
-    private final MemberRepository userRepository;
+    private final MemberJpaRepository userRepository;
 
-    public CustomUserDetailsService(MemberRepository userRepository) {
+    public CustomUserDetailsService(MemberJpaRepository userRepository) {
         this.userRepository = userRepository;
     }
 

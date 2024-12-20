@@ -11,6 +11,7 @@ import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.oauth2.handler.CustomOauth2SuccessHandler;
 import org.myteam.server.oauth2.handler.OAuth2LoginFailureHandler;
 import org.myteam.server.oauth2.service.CustomOAuth2UserService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -36,6 +37,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    @Value("${FRONT_URL:http://localhost:3000}")
+    private String frontUrl;
     private final JwtProvider jwtProvider;
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
@@ -133,7 +136,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
-        configuration.addAllowedOrigin("http://localhost:3000"); // TODO_ 추후 변경 해야함 배포시
+        configuration.addAllowedOrigin(frontUrl); // TODO_ 추후 변경 해야함 배포시
         configuration.setAllowCredentials(true);
         configuration.addExposedHeader("Authorization");
         configuration.addExposedHeader("X-Refresh-Token");

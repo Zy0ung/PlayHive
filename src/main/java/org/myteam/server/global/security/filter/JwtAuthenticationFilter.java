@@ -25,6 +25,7 @@ import java.util.UUID;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+    private String frontUrl = "http://localhost:3000"; // TODO_ : 추후 실제 도메인, 포트로 변경
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final AuthenticationManager authenticationManager;
@@ -84,6 +85,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
             response.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
+
+            log.info("print accessToken: {}", accessToken);
+            log.info("print refreshToken: {}", refreshToken);
+            log.info("print frontUrl: {}", frontUrl);
+
+//            frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
+//            frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
+//            response.sendRedirect(frontUrl);
         log.info("자체 서비스 로그인에 성공하였습니다.");
         } catch (InternalAuthenticationServiceException e) {
             System.out.println("successfulAuthentication 메서드 에러 발생 : " + e.getMessage());
