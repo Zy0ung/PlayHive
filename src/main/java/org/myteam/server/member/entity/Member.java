@@ -17,6 +17,7 @@ import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.myteam.server.member.domain.MemberRole.USER;
+import static org.myteam.server.member.domain.MemberStatus.PENDING;
 import static org.myteam.server.member.domain.MemberType.LOCAL;
 
 @Slf4j
@@ -61,11 +62,11 @@ public class Member {
     private MemberType type = LOCAL;
 
     @Column(name = "public_id", nullable = false, updatable = false, unique = true, columnDefinition = "BINARY(16)")
-    private UUID publicId;
+    private UUID publicId = UUID.randomUUID();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private MemberStatus status;
+    private MemberStatus status = PENDING;
 
     @Builder
     public Member(Long id, String email, String password, String tel, String name, String nickname, LocalDate birthdate, GenderType gender, MemberRole role, MemberType type, UUID publicId, MemberStatus status) {
@@ -90,8 +91,8 @@ public class Member {
         this.tel = memberSaveRequest.getTel();
         this.name = memberSaveRequest.getName();
         this.nickname = memberSaveRequest.getNickname();
-        this.gender = GenderType.fromValue(memberSaveRequest.getGender());
         this.birthdate = memberSaveRequest.getBirthdate();
+        this.gender = GenderType.fromValue(memberSaveRequest.getGender());
     }
 
     // 전체 업데이트 메서드
