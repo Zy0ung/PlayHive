@@ -114,6 +114,10 @@ public class Member {
         this.email = email;
     }
 
+    public void updateStatus(MemberStatus memberStatus) {
+        this.status = memberStatus;
+    }
+
     public boolean verifyOwnEmail(String email) {
         return email.equals(this.email);
     }

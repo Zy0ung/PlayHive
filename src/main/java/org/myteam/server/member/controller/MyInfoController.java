@@ -1,9 +1,11 @@
 package org.myteam.server.member.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.dto.CustomUserDetails;
+import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.myteam.server.member.dto.*;
 import org.myteam.server.member.service.MemberService;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.UUID;
 
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
@@ -21,14 +24,27 @@ import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 @RequestMapping("/api/me")
 @RequiredArgsConstructor
 public class MyInfoController {
-
     private final MemberService memberService;
+    private final JwtProvider jwtProvider;
+
+    private static final String ACCESS_TOKEN_KEY = "Authorization";
+    public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
 
     @PostMapping("/create")
     public ResponseEntity<?> create(
-            @RequestBody @Valid MemberSaveRequest memberSaveRequest) {
+            @RequestBody @Valid MemberSaveRequest memberSaveRequest,
+            HttpServletResponse httpServletResponse) {
         log.info("MyInfoController create 메서드 실행");
         MemberResponse response = memberService.create(memberSaveRequest);
+
+        // Authorization
+        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), response.getPublicId(), response.getRole().name());
+        // X-Refresh-Token
+        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), response.getPublicId(), response.getRole().name());
+
+        // 응답 헤더 설정
+        httpServletResponse.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
+        httpServletResponse.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원가입 성공", response), HttpStatus.CREATED);
     }
 

@@ -23,8 +23,6 @@ import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 @RequiredArgsConstructor
 @RequestMapping("/api/certification")
 public class CertificationController {
-    private static final String SIGNUP_TOKEN_KEY = "X-Signup-Token"; // TODO_ : 추후 정리 필요
-    private final JwtProvider jwtProvider; // TODO_ : 추후 정리 필요
     private final CertificationService certificationService;
 
     @PostMapping("/send")

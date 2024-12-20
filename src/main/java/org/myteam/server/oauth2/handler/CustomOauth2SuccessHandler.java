@@ -51,9 +51,9 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
         log.info("onAuthenticationSuccess role: {}", member.getRole());
         // Authorization
-        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole().toString());
+        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole().name());
         // X-Refresh-Token
-        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().toString());
+        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().name());
 
         // response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
         // response.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
