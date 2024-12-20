@@ -39,6 +39,9 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    // spring boot mail 의존성 추가
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-mail', version: '3.3.4'
+
     // h2 database
     runtimeOnly 'com.h2database:h2'
 

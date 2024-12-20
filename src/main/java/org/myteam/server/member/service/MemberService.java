@@ -1,12 +1,15 @@
 package org.myteam.server.member.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.exception.PlayHiveException;
+import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.MemberSaveRequest;
 import org.myteam.server.member.dto.MemberResponse;
 import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
-import org.myteam.server.member.repository.MemberRepository;
+import org.myteam.server.member.repository.MemberJpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,27 +19,30 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.myteam.server.global.exception.ErrorCode.USER_ALREADY_EXISTS;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
 
-    private final MemberRepository memberRepository;
+    private final MemberJpaRepository memberJpaRepository;
 
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public MemberResponse create(MemberSaveRequest memberSaveRequest) {
+    public MemberResponse create(MemberSaveRequest memberSaveRequest) throws PlayHiveException {
         // 1. 동일한 유저 이름 존재 검사
-        Optional<Member> memberOP = memberRepository.findByEmail(memberSaveRequest.getEmail());
+        Optional<Member> memberOP = memberJpaRepository.findByEmail(memberSaveRequest.getEmail());
 
         if (memberOP.isPresent()) {
             // 아이디가 중복 되었다는 것
-            throw new RuntimeException("해당 계정이 이미 존재합니다.");
+            throw new PlayHiveException(USER_ALREADY_EXISTS);
         }
 
         // 2. 패스워드인코딩 + 회원 가입
-        Member member = memberRepository.save(new Member(memberSaveRequest, passwordEncoder));
+        Member member = memberJpaRepository.save(new Member(memberSaveRequest, passwordEncoder));
 
         // 4. dto 응답
         return new MemberResponse(member);
@@ -45,7 +51,7 @@ public class MemberService {
     @Transactional
     public MemberResponse update(String email, MemberUpdateRequest memberUpdateRequest) {
         // 1. 동일한 유저 이름 존재 검사
-        Optional<Member> memberOP = memberRepository.findByEmail(email);
+        Optional<Member> memberOP = memberJpaRepository.findByEmail(email);
 
         // 2. 아이디 미존재 체크
         if (memberOP.isEmpty()) {
@@ -65,14 +71,25 @@ public class MemberService {
         return new MemberResponse(member);
     }
 
+    // 엔티티 반환 get~
     public Member getByEmail(String email) {
-        return memberRepository.findByEmail(email)
+        return memberJpaRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException(email + " 는 존재하지 않는 사용자 입니다"));
     }
 
+    // Optional 반환은 find~
+    public Optional<Member> findByNickname(String nickname) {
+        return memberJpaRepository.findByNickname(nickname);
+    }
+
+    // public Member getByEmailAndPublicId(String email, UUID publicId) {
+    //     return memberJpaRepository.findByEmailAndPublicId(email, publicId)
+    //             .orElseThrow(() -> new RuntimeException(email + " 는 존재하지 않는 사용자 입니다"));
+    // }
+
     public MemberResponse getByPublicId(UUID publicId) {
-        return new MemberResponse(memberRepository.findByPublicId(publicId)
-                        .orElseThrow(() -> new RuntimeException(publicId + " 는 존재하지 않는 사용자 입니다")));
+        return new MemberResponse(memberJpaRepository.findByPublicId(publicId)
+                        .orElseThrow(() -> new RuntimeException(publicId + " 는 존재하지 않는 PublicId 입니다")));
     }
 
     @Transactional
@@ -80,11 +97,11 @@ public class MemberService {
         Member findMember = getByEmail(email);
         boolean isValid = findMember.validatePassword(password, passwordEncoder);
         if (!isValid) throw new RuntimeException("비밀번호가 일치하지 않습니다.");
-        memberRepository.delete(findMember);
+        memberJpaRepository.delete(findMember);
     }
 
     public List<Member> list() {
-        return Optional.of(memberRepository.findAll()).orElse(Collections.emptyList());
+        return Optional.of(memberJpaRepository.findAll()).orElse(Collections.emptyList());
     }
 
     @Transactional
@@ -96,6 +113,17 @@ public class MemberService {
         if (!isValid) throw new RuntimeException("현재 비밀번호가 일치하지 않습니다.");
 
         findMember.updatePassword(passwordChangeRequest, passwordEncoder); // 비밀번호 변경
+    }
+
+    @Transactional
+    public void updateStatus(String email, MemberStatus memberStatus) {
+        Member member = memberJpaRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException(email + " 는 존재하지 않는 사용자입니다."));
+
+        log.info("Member 상태 변경: {}, 새로운 상태: {}", email, memberStatus);
+
+        // 상태 업데이트
+        member.updateStatus(memberStatus);
     }
 
     /**

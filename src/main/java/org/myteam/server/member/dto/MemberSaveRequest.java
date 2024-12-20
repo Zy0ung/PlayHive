@@ -1,9 +1,12 @@
 package org.myteam.server.member.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
+
+import java.time.LocalDate;
 
 @Getter
 @Builder
@@ -23,4 +26,15 @@ public class MemberSaveRequest {
 
     @Pattern(regexp = "^[a-zA-Z가-힣]{1,20}$", message = "한글/영문 1~20자 이내로 작성해주세요")
     private String name; // 이름
+
+    // _-. 를 포함하는 닉네임 생성 가능
+    @Pattern(regexp = "^[a-zA-Z가-힣0-9_\\-]{1,20}$", message = "한글/영문/_- 1~20자 이내로 작성해주세요")
+    private String nickname;
+
+    // YYYY-MM-dd 형식
+    @Column(name = "birth_date")
+    private LocalDate birthdate;
+
+    @Pattern(regexp = "^(?i)(MALE|FEMALE)$", message = "성별은 MALE, FEMALE 중 하나여야 합니다.")
+    private String gender;
 }

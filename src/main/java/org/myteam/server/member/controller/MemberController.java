@@ -4,8 +4,11 @@ package org.myteam.server.member.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.web.response.ResponseDto;
+import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.MemberDeleteRequest;
 import org.myteam.server.member.dto.MemberResponse;
 import org.myteam.server.member.dto.MemberUpdateRequest;
@@ -17,6 +20,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 
@@ -27,11 +31,18 @@ import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 public class MemberController {
     private final MemberService memberService;
 
-    @GetMapping("/{email}")
-    public ResponseEntity<?> get(@PathVariable String email) {
-        log.info("MemberController getByEmail 메서드 실행");
+    @GetMapping("/email/{email}")
+    public ResponseEntity<?> getByEmail(@PathVariable String email) {
+        log.info("MemberController getByEmail 메서드 실행 : {}", email);
         Member member = memberService.getByEmail(email);
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", new MemberResponse(member)), HttpStatus.OK);
+    }
+
+    @GetMapping("/nickname/{nickname}")
+    public ResponseEntity<?> getByNickname(@PathVariable String nickname) {
+        log.info("MemberController getByNickname 메서드 실행 : {}", nickname);
+        Optional<Member> memberOP = memberService.findByNickname(nickname);
+        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", memberOP.isPresent() ? new MemberResponse(memberOP.get()) : null), HttpStatus.OK);
     }
 
     @GetMapping
@@ -57,5 +68,18 @@ public class MemberController {
         log.info("MemberController delete( 메서드 실행 : {}, {}", email, memberDeleteRequest);
         memberService.delete(email, memberDeleteRequest.getPassword());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 삭제 성공", null), HttpStatus.OK);
+    }
+
+    @PutMapping("/email/{email}/status/{status}")
+    public ResponseEntity<?> updateStatus(@PathVariable String email, @PathVariable String status) {
+        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(status)) {
+            throw new PlayHiveException("유저 상태 변경 실패 (유효성 에러). email : " + email +", status : " + status);
+        }
+
+        // 서비스 호출
+        MemberStatus memberStatus = MemberStatus.valueOf(status.toUpperCase());
+        memberService.updateStatus(email, memberStatus);
+
+        return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "회원 상태가 성공적으로 변경되었습니다.", null));
     }
 }
