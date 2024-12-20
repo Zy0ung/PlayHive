@@ -1,5 +1,6 @@
 package org.myteam.server.common.certification.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.common.certification.dto.CertificationEmailRequest;
@@ -27,14 +28,14 @@ public class CertificationController {
     private final CertificationService certificationService;
 
     @PostMapping("/send")
-    public ResponseEntity<?> sendCertificationEmail(@RequestBody CertificationEmailRequest certificationEmailRequest) {
+    public ResponseEntity<?> sendCertificationEmail(@Valid @RequestBody CertificationEmailRequest certificationEmailRequest) {
         log.info("send-certification email: {}", certificationEmailRequest.getEmail());
          certificationService.send(certificationEmailRequest.getEmail());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "인증 코드 이메일 전송 성공", null), HttpStatus.OK);
     }
 
     @PostMapping("/certify-code")
-    public ResponseEntity<?> certifyCode(@RequestBody CertificationEmailRequest certificationEmailRequest) {
+    public ResponseEntity<?> certifyCode(@Valid @RequestBody CertificationEmailRequest certificationEmailRequest) {
         String code = certificationEmailRequest.getCode(); // 인증 코드
         String email = certificationEmailRequest.getEmail(); // 이메일
         boolean isValid = certificationService.certify(email, code);
