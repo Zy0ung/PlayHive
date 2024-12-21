@@ -74,10 +74,13 @@ public class MyInfoController {
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "비밀번호 변경 성공", null), HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/{email}")
-    public ResponseEntity<?> delete(@PathVariable String email, @RequestBody MemberDeleteRequest memberDeleteRequest) {
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> delete(@RequestBody @Valid MemberDeleteRequest memberDeleteRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("MyInfoController delete 메서드 실행");
+        String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
+
         memberService.delete(email, memberDeleteRequest.getPassword());
+
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 삭제 성공", null), HttpStatus.OK);
     }
 }

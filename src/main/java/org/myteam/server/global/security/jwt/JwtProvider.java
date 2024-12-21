@@ -20,7 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class JwtProvider {
-
+    public final static String HEADER_AUTHORIZATION = "Authorization";
+    public final static String TOKEN_PREFIX = "Bearer ";
     private final JwtProperties jwtProperties;
 
     /**
@@ -125,5 +126,28 @@ public class JwtProvider {
      */
     public SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(jwtProperties.getSecretKey()));
+    }
+
+    /**
+     * authorization header 에서 access token 을 추출합니다.
+     *
+     * @param authorizationHeader : String authorization header
+     * @return String access token
+     */
+    public String getAccessToken(String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
+            return authorizationHeader.replace(TOKEN_PREFIX, "");
+        }
+        return null;
+    }
+
+    /**
+     * 토큰이 만료되었는지 확인하는 메서드
+     *
+     * @param token JWT 토큰
+     * @return 토큰이 만료되었으면 true, 그렇지 않으면 false
+     */
+    public Boolean isExpired(String token){
+        return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 }

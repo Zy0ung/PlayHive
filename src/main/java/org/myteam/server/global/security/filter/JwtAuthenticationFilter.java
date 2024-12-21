@@ -25,7 +25,6 @@ import java.util.UUID;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private String frontUrl = "http://localhost:3000"; // TODO_ : 추후 실제 도메인, 포트로 변경
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final AuthenticationManager authenticationManager;
@@ -88,7 +87,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             log.info("print accessToken: {}", accessToken);
             log.info("print refreshToken: {}", refreshToken);
-            log.info("print frontUrl: {}", frontUrl);
 
 //            frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
 //            frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
