@@ -20,6 +20,8 @@ import org.springframework.stereotype.Component;
 @Component
 @AllArgsConstructor
 public class JwtProvider {
+    public final static String TOKEN_CATEGORY_ACCESS = "access"; // 어세스 토큰 카테고리
+    public final static String TOKEN_CATEGORY_REFRESH = "refresh"; // 리프레시 토큰 카테고리
     public final static String HEADER_AUTHORIZATION = "Authorization";
     public final static String TOKEN_PREFIX = "Bearer ";
     private final JwtProperties jwtProperties;
@@ -32,24 +34,25 @@ public class JwtProvider {
      * @param role     String
      * @return String
      */
-    public String generateToken(Duration duration, UUID publicId, String role) {
+    public String generateToken(String category, Duration duration, UUID publicId, String role) {
         Date now = new Date();
-        return makeToken(new Date(now.getTime() + duration.toMillis()), publicId, role);
+        return makeToken(category, new Date(now.getTime() + duration.toMillis()), publicId, role);
     }
 
     /**
      * 토큰 생성
-     *
-     * @param expirationDate Date 만료 시간
-     * @param publicId         UUID
-     * @param role           String
-     * @return String
+     * @param category 토큰 종류 구분 (access | refresh)
+     * @param expirationDate 만료 기간
+     * @param publicId publicId
+     * @param role 권한
+     * @return
      */
-    private String makeToken(Date expirationDate, UUID publicId, String role) {
+    private String makeToken(String category, Date expirationDate, UUID publicId, String role) {
         return Jwts.builder()
                 .issuer(jwtProperties.getIssuer())
                 .issuedAt(new Date())
                 .expiration(expirationDate)
+                .claim("category", category)
                 .claim("id", publicId)
                 .claim("role", role)
                 .signWith(getSigningKey())
@@ -139,6 +142,17 @@ public class JwtProvider {
             return authorizationHeader.replace(TOKEN_PREFIX, "");
         }
         return null;
+    }
+
+    /**
+     * 토큰으로부터 카테고리를 추출
+     *
+     * @param token String
+     * @return UUID
+     */
+    public String getCategory(String token) {
+        Claims claims = getClaims(token);
+        return claims.get("category", String.class);
     }
 
     /**

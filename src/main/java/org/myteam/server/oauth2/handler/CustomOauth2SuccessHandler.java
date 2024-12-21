@@ -15,9 +15,14 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
+
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
+import static org.myteam.server.util.CookieUtil.createCookie;
 
 @Slf4j
 @Component
@@ -51,12 +56,13 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
         log.info("onAuthenticationSuccess role: {}", member.getRole());
         // Authorization
-        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole().name());
+        String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(1), member.getPublicId(), member.getRole().name());
         // X-Refresh-Token
-        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().name());
+        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(7), member.getPublicId(), member.getRole().name());
+        String cookie_Value = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
-        // response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-        // response.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
+        response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookie_Value, 24 * 60 * 60, true));
 
         log.debug("print accessToken: {}", accessToken);
         log.debug("print refreshToken: {}", refreshToken);

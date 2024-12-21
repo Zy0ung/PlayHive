@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.myteam.server.member.dto.MemberDeleteRequest;
 import org.myteam.server.member.dto.MemberGetRequest;
-import org.myteam.server.member.dto.MemberResponse;
+import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.service.MemberService;
 import org.springframework.http.HttpStatus;

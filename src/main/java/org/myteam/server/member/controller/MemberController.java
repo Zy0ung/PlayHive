@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.ExistMemberRequest;
-import org.myteam.server.member.dto.MemberResponse;
+import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.dto.MemberStatusUpdateRequest;
 import org.myteam.server.member.service.MemberService;
 import org.springframework.http.ResponseEntity;

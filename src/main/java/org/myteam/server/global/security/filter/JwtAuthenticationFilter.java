@@ -17,11 +17,17 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
+import static org.myteam.server.util.CookieUtil.createCookie;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -78,12 +84,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             String role = auth.getAuthority();
 
             // Authorization
-            String accessToken = jwtProvider.generateToken(Duration.ofHours(1), publicId, role);
+            String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role);
             // X-Refresh-Token
-            String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), publicId, role);
+            String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role);
+            // URLEncoder.encode: 공백을 %2B 로 처리
+            String cookie_Value = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
             response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-            response.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookie_Value, 24 * 60 * 60, true));
 
             log.info("print accessToken: {}", accessToken);
             log.info("print refreshToken: {}", refreshToken);

@@ -6,7 +6,7 @@ import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.MemberSaveRequest;
-import org.myteam.server.member.dto.MemberResponse;
+import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
