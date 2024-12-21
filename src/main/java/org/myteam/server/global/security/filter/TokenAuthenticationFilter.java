@@ -1,5 +1,6 @@
 package org.myteam.server.global.security.filter;
 
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,11 +18,11 @@ import org.myteam.server.member.entity.Member;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import static org.myteam.server.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
-import static org.myteam.server.global.exception.ErrorCode.INVALID_TOKEN;
+import static org.myteam.server.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -37,8 +38,16 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         String accessToken = jwtProvider.getAccessToken(authorizationHeader);
 
         log.info("accessToken : " + accessToken);
-        if (StringUtils.hasText(accessToken)) {
+        if (StringUtils.isNotBlank(accessToken)) {
             if (jwtProvider.validToken(accessToken)) {
+
+                String accessCategory = jwtProvider.getCategory(accessToken);
+
+                if (!accessCategory.equals(TOKEN_CATEGORY_ACCESS)) {
+                    // 프론트 단에서 AccessCategory 가 넘어오지 않고
+                    // refreshToken 을 넘겨서 AccessToken 을 재발급 받으려는 상황
+                    throw new PlayHiveException(ACCESS_TOKEN_EXPIRED);
+                }
 
                 //토큰에서 username과 role 획득
                 UUID publicId = jwtProvider.getPublicId(accessToken);
@@ -63,7 +72,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                     // 토큰이 만료된 경우
                     throw new PlayHiveException(ACCESS_TOKEN_EXPIRED);
                 }
-                throw new PlayHiveException(INVALID_TOKEN);
+                throw new PlayHiveException(INVALID_ACCESS_TOKEN);
             }
         }
         filterChain.doFilter(request, response);

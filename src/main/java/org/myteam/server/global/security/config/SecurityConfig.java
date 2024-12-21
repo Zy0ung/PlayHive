@@ -2,6 +2,7 @@ package org.myteam.server.global.security.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.auth.repository.RefreshJpaRepository;
 import org.myteam.server.global.security.handler.LogoutSuccessHandler;
 import org.myteam.server.global.security.filter.JwtAuthenticationFilter;
 import org.myteam.server.global.security.jwt.JwtProvider;
@@ -44,6 +45,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2SuccessHandler customOauth2SuccessHandler;
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+    private final RefreshJpaRepository refreshJpaRepository;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -93,7 +95,7 @@ public class SecurityConfig {
         http
             .addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
             .addFilterAt(
-                    new JwtAuthenticationFilter(authenticationManager(), jwtProvider),
+                    new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
                     UsernamePasswordAuthenticationFilter.class
             ); // 회원 로그인 필터
 
@@ -106,6 +108,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorizeRequests ->
                     authorizeRequests
                             .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
+                            .requestMatchers("/reissue").permitAll()          // 토큰 재발급
                             .requestMatchers("/test/**").authenticated()      // /test/** 경로는 인증 필요
                             .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
                             .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
@@ -116,7 +119,7 @@ public class SecurityConfig {
             .logout(logout -> logout
             .logoutUrl("/logout")
             .invalidateHttpSession(true)
-            .logoutSuccessHandler(new LogoutSuccessHandler())
+            .logoutSuccessHandler(new LogoutSuccessHandler(jwtProvider, refreshJpaRepository))
             .permitAll());
 
         return http.build();

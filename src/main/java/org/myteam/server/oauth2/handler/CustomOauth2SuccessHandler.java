@@ -30,7 +30,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     @Value("${FRONT_URL:http://localhost:3000}")
     private String frontUrl;
     private static final String ACCESS_TOKEN_KEY = "Authorization";
-    public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
+    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final JwtProvider jwtProvider;
     private final MemberJpaRepository memberJpaRepository;
 
@@ -59,10 +59,10 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(1), member.getPublicId(), member.getRole().name());
         // X-Refresh-Token
         String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(7), member.getPublicId(), member.getRole().name());
-        String cookie_Value = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+        String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
         response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookie_Value, 24 * 60 * 60, true));
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, 24 * 60 * 60, true));
 
         log.debug("print accessToken: {}", accessToken);
         log.debug("print refreshToken: {}", refreshToken);

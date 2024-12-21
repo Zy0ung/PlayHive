@@ -34,7 +34,7 @@ public class MyInfoController {
     private final JwtProvider jwtProvider;
 
     private static final String ACCESS_TOKEN_KEY = "Authorization";
-    public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
+    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
 
     @PostMapping("/create")
     public ResponseEntity<?> create(
@@ -43,20 +43,16 @@ public class MyInfoController {
         log.info("MyInfoController create 메서드 실행");
         MemberResponse response = memberService.create(memberSaveRequest);
 
-        // URLEncoder.encode: 공백을 %2B 로 처리
-
-//        response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-//        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookie_Value));
-
         // Authorization
         String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), response.getPublicId(), response.getRole().name());
         // X-Refresh-Token
         String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), response.getPublicId(), response.getRole().name());
-        String cookie_Value = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+        // URLEncoder.encode: 공백을 %2B 로 처리
+        String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
         // 응답 헤더 설정
         httpServletResponse.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-        httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookie_Value, 24 * 60 * 60, true));
+        httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, 24 * 60 * 60, true));
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원가입 성공", response), HttpStatus.CREATED);
     }
 

@@ -6,8 +6,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.auth.entity.Refresh;
+import org.myteam.server.auth.repository.RefreshJpaRepository;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,10 +23,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
@@ -32,14 +32,16 @@ import static org.myteam.server.util.CookieUtil.createCookie;
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private static final String ACCESS_TOKEN_KEY = "Authorization";
-    public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
+    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RefreshJpaRepository refreshJpaRepository;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider, RefreshJpaRepository refreshJpaRepository) {
         setFilterProcessesUrl("/login");
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
+        this.refreshJpaRepository = refreshJpaRepository;
     }
 
     @Override
@@ -88,13 +90,18 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             // X-Refresh-Token
             String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role);
             // URLEncoder.encode: 공백을 %2B 로 처리
-            String cookie_Value = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+            String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+
+            log.debug("print accessToken: {}", accessToken);
+            log.debug("print refreshToken: {}", refreshToken);
+
+            //Refresh 토큰 저장
+            addRefreshEntity(publicId, refreshToken, Duration.ofHours(24));
 
             response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookie_Value, 24 * 60 * 60, true));
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, 24 * 60 * 60, true));
+            response.setStatus(HttpStatus.OK.value());
 
-            log.info("print accessToken: {}", accessToken);
-            log.info("print refreshToken: {}", refreshToken);
 
 //            frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
 //            frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
@@ -112,5 +119,18 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setStatus(401);
         log.debug("message : {}", message);
         System.out.println("fail authentication");
+    }
+
+    public void addRefreshEntity(UUID publicId, String refresh, Duration duration) {
+        log.info("addRefreshEntity > publicId: {}, refresh: {}, expiredMs: {}", publicId, refresh, duration.toMillis());
+        Date date = new Date(System.currentTimeMillis() + duration.toMillis());
+
+        Refresh refreshEntity = Refresh.builder()
+                .publicId(publicId)
+                .refresh(refresh)
+                .expiration(date.toString())
+                .build();
+
+        refreshJpaRepository.save(refreshEntity);
     }
 }
