@@ -1,27 +1,20 @@
 package org.myteam.server.member.controller;
 
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.myteam.server.global.exception.PlayHiveException;
-import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.myteam.server.member.domain.MemberStatus;
-import org.myteam.server.member.dto.MemberDeleteRequest;
-import org.myteam.server.member.dto.MemberResponse;
-import org.myteam.server.member.dto.MemberUpdateRequest;
-import org.myteam.server.member.entity.Member;
+import org.myteam.server.member.dto.ExistMemberRequest;
+import org.myteam.server.member.controller.response.MemberResponse;
+import org.myteam.server.member.dto.MemberStatusUpdateRequest;
 import org.myteam.server.member.service.MemberService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
-
+import static org.myteam.server.global.security.jwt.JwtProvider.HEADER_AUTHORIZATION;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 
 @Slf4j
@@ -31,54 +24,46 @@ import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 public class MemberController {
     private final MemberService memberService;
 
-    @GetMapping("/email/{email}")
-    public ResponseEntity<?> getByEmail(@PathVariable String email) {
-        log.info("MemberController getByEmail 메서드 실행 : {}", email);
-        Member member = memberService.getByEmail(email);
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", new MemberResponse(member)), HttpStatus.OK);
+    /**
+     * 이메일로 사용자 존재 여부 확인
+     */
+    @GetMapping("/exists/email")
+    public ResponseEntity<?> existsByEmail(@Valid ExistMemberRequest existMemberRequest) {
+        log.info("MemberController existsByEmail 메서드 실행 : {}", existMemberRequest.getEmail());
+        boolean exists = memberService.existsByEmail(existMemberRequest.getEmail());
+        return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "이메일 존재 여부 확인", exists));
     }
 
-    @GetMapping("/nickname/{nickname}")
-    public ResponseEntity<?> getByNickname(@PathVariable String nickname) {
-        log.info("MemberController getByNickname 메서드 실행 : {}", nickname);
-        Optional<Member> memberOP = memberService.findByNickname(nickname);
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", memberOP.isPresent() ? new MemberResponse(memberOP.get()) : null), HttpStatus.OK);
+    /**
+     * 닉네임으로 사용자 존재 여부 확인
+     */
+    @GetMapping("/exists/nickname")
+    public ResponseEntity<?> existsByNickname(@Valid ExistMemberRequest existMemberRequest) {
+        log.info("MemberController existsByNickname 메서드 실행 : {}", existMemberRequest.getNickname());
+        boolean exists = memberService.existsByNickname(existMemberRequest.getNickname());
+        return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "닉네임 존재 여부 확인", exists));
     }
 
-    @GetMapping
-    public ResponseEntity<?> list() {
-        log.info("getAllMembers : 회원 정보 목록 조회 메서드 실행");
-        List<Member> allMembers = memberService.list();
-        List<MemberResponse> response = allMembers.stream().map(MemberResponse::new).toList();
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 목록 조회 성공", response), HttpStatus.OK);
-    }
+    // TODO_ : 헤더에 publicId 를 넣어달라고 하고 받아서... 끄내고 아이디 조회해서 그걸로 다시 own 검토하면 될 것으로 보임
+    @PutMapping("/status")
+    public ResponseEntity<?> updateStatus(
+             @RequestBody @Valid MemberStatusUpdateRequest memberStatusUpdateRequest,
+            HttpServletRequest httpServletRequest
+    ) {
+        log.info("MyInfoController updateStatus 메서드 실행");
+        String authorizationHeader = httpServletRequest.getHeader(HEADER_AUTHORIZATION);
 
-    @Deprecated
-    @PutMapping("/update")
-    public ResponseEntity<?> update(@RequestBody @Valid MemberUpdateRequest memberUpdateRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
-        log.info("MemberController update 메서드 실행 : {}", memberUpdateRequest.toString());
-        String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
-        MemberResponse response = memberService.update(email, memberUpdateRequest);
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원정보 수정 성공", response), HttpStatus.OK);
-    }
+        // accessToken 으로 부터 유저 정보 반환
+        MemberResponse response = memberService.getAuthenticatedMember(authorizationHeader);
 
-    @Deprecated
-    @DeleteMapping("/delete/{email}")
-    public ResponseEntity<?> delete(@PathVariable String email, @RequestBody MemberDeleteRequest memberDeleteRequest) {
-        log.info("MemberController delete( 메서드 실행 : {}, {}", email, memberDeleteRequest);
-        memberService.delete(email, memberDeleteRequest.getPassword());
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 삭제 성공", null), HttpStatus.OK);
-    }
-
-    @PutMapping("/email/{email}/status/{status}")
-    public ResponseEntity<?> updateStatus(@PathVariable String email, @PathVariable String status) {
-        if (StringUtils.isEmpty(email) || StringUtils.isEmpty(status)) {
-            throw new PlayHiveException("유저 상태 변경 실패 (유효성 에러). email : " + email +", status : " + status);
-        }
+        log.info("email : {}" , response.getEmail());
 
         // 서비스 호출
-        MemberStatus memberStatus = MemberStatus.valueOf(status.toUpperCase());
-        memberService.updateStatus(email, memberStatus);
+        MemberStatus memberStatus = memberStatusUpdateRequest.getStatus(); // 변경 상태
+        String targetEmail = response.getEmail(); // 상태를 변경할 대상 이메일
+        String extractedEmail = memberStatusUpdateRequest.getEmail(); // 토큰에서 추출된 이메일
+
+        memberService.updateStatus(extractedEmail, targetEmail, memberStatus);
 
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "회원 상태가 성공적으로 변경되었습니다.", null));
     }

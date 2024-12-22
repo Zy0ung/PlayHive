@@ -14,7 +14,7 @@ public class PlayHiveException extends RuntimeException {
      */
     public PlayHiveException(ErrorCode errorCode) {
         super(errorCode.getMsg());
-        this.errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
+        this.errorCode = errorCode;
     }
 
     /**
@@ -22,6 +22,6 @@ public class PlayHiveException extends RuntimeException {
      */
     public PlayHiveException(String message) {
         super(message);
-        this.errorCode = ErrorCode.UNSUPPORTED_OAUTH_PROVIDER;
+        this.errorCode = ErrorCode.INTERNAL_SERVER_ERROR;
     }
 }

@@ -1,5 +1,7 @@
 package org.myteam.server.global.security.filter;
 
+import io.jsonwebtoken.JwtException;
+import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +10,7 @@ import java.io.IOException;
 import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
-import org.myteam.server.global.exception.PlayHiveException;
+import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberRole;
@@ -16,37 +18,44 @@ import org.myteam.server.member.entity.Member;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import static org.myteam.server.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
+import static org.myteam.server.global.exception.ErrorCode.*;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 
+@Slf4j
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
-
     private final static String HEADER_AUTHORIZATION = "Authorization";
-    private final static String TOKEN_PREFIX = "Bearer ";
     private final JwtProvider jwtProvider;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        logger.info("TokenAuthenticationFilter 토큰을 검사중");
+        log.info("TokenAuthenticationFilter 토큰을 검사중");
         String authorizationHeader = request.getHeader(HEADER_AUTHORIZATION);
-        String accessToken = getAccessToken(authorizationHeader);
+        String accessToken = jwtProvider.getAccessToken(authorizationHeader);
 
-        logger.info("accessToken : " + accessToken);
-        if (StringUtils.hasText(accessToken)) {
+        log.info("accessToken : " + accessToken);
+        if (StringUtils.isNotBlank(accessToken)) {
             if (jwtProvider.validToken(accessToken)) {
 
-                //토큰에서 username과 role 획득
+                String accessCategory = jwtProvider.getCategory(accessToken);
+
+                if (!accessCategory.equals(TOKEN_CATEGORY_ACCESS)) {
+                    // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                    sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus().value(), "잘못된 토큰 유형");
+                    return;
+                }
+
+                // 토큰에서 username과 role 획득
                 UUID publicId = jwtProvider.getPublicId(accessToken);
                 String role = jwtProvider.getRole(accessToken);
 
-                logger.info("publicId : "+ publicId);
-                logger.info("role : "+ role);
+                log.info("publicId : " + publicId);
+                log.info("role : " + role);
 
-                //Member 를 생성하여 값 set
+                // Member 를 생성하여 값 set
                 Member member = Member.builder()
                         .publicId(publicId)
                         .role(MemberRole.valueOf(role))
@@ -56,24 +65,40 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
                 Authentication authToken = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authToken);
-                logger.info("security Context 에 정보 저장이 완료되었습니다.");
+                log.info("security Context 에 정보 저장이 완료되었습니다.");
             } else {
-                throw new PlayHiveException(ACCESS_TOKEN_EXPIRED);
+                try {
+                    if (jwtProvider.isExpired(accessToken)) {
+                        // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                        sendErrorResponse(response, ACCESS_TOKEN_EXPIRED.getStatus().value(), "만료된 토큰");
+                        return;
+                    }
+                } catch (JwtException | IllegalArgumentException e) {
+                    // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                    log.debug("잘못된 JWT 토큰 형식 또는 그 외 에러 : {}", e.getMessage());
+                    sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus().value(), "잘못된 JWT 토큰 형식 또는 그 외 에러");
+                    return;
+                }
+                // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus().value(), "인증되지 않은 토큰");
+                return;
             }
         }
         filterChain.doFilter(request, response);
     }
 
     /**
-     * authorization header 에서 access token 을 추출합니다.
+     * 공통 에러 응답 처리 메서드
      *
-     * @param authorizationHeader : String authorization header
-     * @return String access token
+     * @param response HttpServletResponse
+     * @param status   HTTP 상태 코드
+     * @param message  에러 메시지
+     * @throws IOException
      */
-    private String getAccessToken(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
-            return authorizationHeader.replace(TOKEN_PREFIX, "");
-        }
-        return null;
+    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":%d}", message, status));
     }
 }

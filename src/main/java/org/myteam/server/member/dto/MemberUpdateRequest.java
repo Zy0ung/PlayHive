@@ -5,12 +5,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
+import org.myteam.server.member.domain.MemberStatus;
 
 import java.time.LocalDate;
 
 @Getter
 @Builder
 public class MemberUpdateRequest {
+    @Pattern(regexp = "^[0-9a-zA-Z]+@[0-9a-zA-Z]+(\\.[a-zA-Z]{2,3}){1,2}$", message = "이메일 형식으로 작성해주세요")
+    private String email; // 계정
+
     @NotBlank
     @Pattern(regexp = "^010[0-9]{8}$", message = "연락처는 '010'으로 시작하고 뒤에 8자리 숫자로 작성해주세요.")
     private String tel; // 전화번호
@@ -28,4 +32,6 @@ public class MemberUpdateRequest {
 
     @Pattern(regexp = "^(MALE|FEMALE)$", message = "성별은 MALE, FEMALE 중 하나여야 합니다.")
     private String gender;
+
+    private MemberStatus status;
 }

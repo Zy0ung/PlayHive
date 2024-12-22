@@ -16,9 +16,11 @@ public enum ErrorCode {
 
     // 401 Unauthorized,
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),
+    INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST, "Invalid token type"),
     ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Access Token Session has expired. Please log in again."),
+    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Token"),
     REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Refresh Token Session has expired. Please log in again."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Token"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Refresh Token"),
 
     // 403 Forbidden
     ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "Account disabled"),

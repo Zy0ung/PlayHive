@@ -15,9 +15,15 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
+
+import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
+import static org.myteam.server.util.CookieUtil.createCookie;
 
 @Slf4j
 @Component
@@ -25,7 +31,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
     @Value("${FRONT_URL:http://localhost:3000}")
     private String frontUrl;
     private static final String ACCESS_TOKEN_KEY = "Authorization";
-    public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
+    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final JwtProvider jwtProvider;
     private final MemberJpaRepository memberJpaRepository;
 
@@ -51,19 +57,22 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
         log.info("onAuthenticationSuccess role: {}", member.getRole());
         // Authorization
-        String accessToken = jwtProvider.generateToken(Duration.ofHours(1), member.getPublicId(), member.getRole().name());
+        String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(1), member.getPublicId(), member.getRole().name());
         // X-Refresh-Token
-        String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), member.getPublicId(), member.getRole().name());
+        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(7), member.getPublicId(), member.getRole().name());
+        String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
+        // redirect 순간 Header 값 날아감
         // response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-        // response.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
 
         log.debug("print accessToken: {}", accessToken);
         log.debug("print refreshToken: {}", refreshToken);
         log.debug("print frontUrl: {}", frontUrl);
 
-        frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
-        frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
+//        frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
+//        frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
+        // front 로 리다이렉트 후 Access Token 재갱신 처리하도록 권유
         response.sendRedirect(frontUrl);
 
         log.debug("Oauth 로그인에 성공하였습니다.");

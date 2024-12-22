@@ -1,4 +1,4 @@
-package org.myteam.server.member.dto;
+package org.myteam.server.member.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
