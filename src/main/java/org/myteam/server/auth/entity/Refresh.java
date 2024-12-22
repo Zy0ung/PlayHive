@@ -16,9 +16,9 @@ public class Refresh {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 //    private String email;
-    @Column(nullable = false, unique = true, columnDefinition = "BINARY(16)")
+    @Column(name = "public_id", nullable = false, columnDefinition = "BINARY(16)")
     private UUID publicId;
-    @Column(nullable = false, unique = true, columnDefinition="BLOB")
+    @Column(nullable = false, columnDefinition="BLOB")
     private String refresh;
     @Column(nullable = false)
     private String expiration;

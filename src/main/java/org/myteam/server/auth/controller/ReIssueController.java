@@ -3,9 +3,9 @@ package org.myteam.server.auth.controller;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.auth.domain.Tokens;
 import org.myteam.server.auth.service.ReIssueService;
-import org.myteam.server.global.security.jwt.JwtProvider;
-import org.myteam.server.member.service.MemberService;
+import org.myteam.server.global.exception.PlayHiveException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,57 +13,53 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.UUID;
 
-import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.util.CookieUtil.createCookie;
 
+/**
+ * TODO_ : 리프레시 토큰에 대한 블랙 리스트 작성
+ */
 @Slf4j
 @RestController
 public class ReIssueController {
-    private final JwtProvider jwtProvider;
-    private final MemberService memberService;
     private final ReIssueService reIssueService;
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
+    public final static String TOKEN_PREFIX = "Bearer ";
 
-    public ReIssueController(JwtProvider jwtProvider, ReIssueService reIssueService, MemberService memberService) {
-        this.jwtProvider = jwtProvider;
+    public ReIssueController(ReIssueService reIssueService) {
         this.reIssueService = reIssueService;
-        this.memberService = memberService;
     }
 
     // TODO_ : 만료시간이 지난 토큰은 주기적으로 삭제하는 스케쥴러 개발 필요
     @PostMapping("/reissue")
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
-        String refresh = reIssueService.extractRefreshToken(request);
+        log.info("ReIssueController reissue START");
 
-        UUID publicId = jwtProvider.getPublicId(refresh);
-        String role = jwtProvider.getRole(refresh);
+        try {
+            // 서비스 호출로 모든 로직을 위임
+            Tokens tokens = reIssueService.reissueTokens(request);
 
-        log.info("extracted refresh token: {}", refresh);
-        log.info("extracted publicId: {}", publicId);
-        log.info("extracted role: {}", role);
+            // Access Token 응답 헤더 추가
+            response.addHeader(ACCESS_TOKEN_KEY, TOKEN_PREFIX + tokens.getAccessToken());
 
-        reIssueService.validateRefreshToken(refresh, publicId);
-
-        // Authorization
-        String newAccess = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role);
-        // X-Refresh-Token
-        String newRefresh = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role);
-        // URLEncoder.encode: 공백을 %2B 로 처리
-        String cookieValue = URLEncoder.encode("Bearer " + newRefresh, StandardCharsets.UTF_8);
-
-        //Refresh 토큰 저장 DB에 기존의 Refresh 토큰 삭제 후 새 Refresh 토큰 저장
-        reIssueService.deleteByRefreshAndPublicId(refresh, publicId);
-        reIssueService.addRefreshEntity(publicId, newRefresh, Duration.ofHours(24));
-
-        //response
-        response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + newAccess);
-        // 리프레시 토큰에 대한 블랙 리스트 작성
-        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, 24 * 60 * 60, true));
-
-        return new ResponseEntity<>(HttpStatus.OK);
+            // Refresh Token 쿠키 추가
+            response.addCookie(createCookie(
+                    REFRESH_TOKEN_KEY,
+                    URLEncoder.encode(TOKEN_PREFIX + tokens.getRefreshToken(), StandardCharsets.UTF_8),
+                    24 * 60 * 60,
+                    true
+            ));
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (PlayHiveException e) {
+            // 서비스에서 발생한 PlayHiveException 을 그대로 재던짐
+            log.error("서비스에서 발생한 PlayHiveException");
+            log.error(e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            // 일반 예외는 PlayHiveException 으로 에러를 던짐
+            log.error("Unexpected error during token reissue :" + e.getMessage());
+            throw new PlayHiveException(e.getMessage());
+        }
     }
 }

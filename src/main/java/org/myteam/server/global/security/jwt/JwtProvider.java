@@ -161,7 +161,8 @@ public class JwtProvider {
      * @param token JWT 토큰
      * @return 토큰이 만료되었으면 true, 그렇지 않으면 false
      */
-    public Boolean isExpired(String token){
+    public Boolean isExpired(String token) {
+        // throws JwtException, IllegalArgumentException
         return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).getPayload().getExpiration().before(new Date());
     }
 }

@@ -1,5 +1,6 @@
 package org.myteam.server.global.security.filter;
 
+import io.jsonwebtoken.JwtException;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,7 +11,6 @@ import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberRole;
@@ -20,8 +20,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import static org.myteam.server.global.exception.ErrorCode.ACCESS_TOKEN_EXPIRED;
-import static org.myteam.server.global.exception.ErrorCode.INVALID_ACCESS_TOKEN;
+import static org.myteam.server.global.exception.ErrorCode.*;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 
 @Slf4j
@@ -44,19 +43,19 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 String accessCategory = jwtProvider.getCategory(accessToken);
 
                 if (!accessCategory.equals(TOKEN_CATEGORY_ACCESS)) {
-                    // 프론트 단에서 AccessCategory 가 넘어오지 않고
-                    // refreshToken 을 넘겨서 AccessToken 을 재발급 받으려는 상황
-                    throw new PlayHiveException(ACCESS_TOKEN_EXPIRED);
+                    // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                    sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus().value(), "잘못된 토큰 유형");
+                    return;
                 }
 
-                //토큰에서 username과 role 획득
+                // 토큰에서 username과 role 획득
                 UUID publicId = jwtProvider.getPublicId(accessToken);
                 String role = jwtProvider.getRole(accessToken);
 
-                log.info("publicId : "+ publicId);
-                log.info("role : "+ role);
+                log.info("publicId : " + publicId);
+                log.info("role : " + role);
 
-                //Member 를 생성하여 값 set
+                // Member 를 생성하여 값 set
                 Member member = Member.builder()
                         .publicId(publicId)
                         .role(MemberRole.valueOf(role))
@@ -68,13 +67,38 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
                 log.info("security Context 에 정보 저장이 완료되었습니다.");
             } else {
-                if (jwtProvider.isExpired(accessToken)) {
-                    // 토큰이 만료된 경우
-                    throw new PlayHiveException(ACCESS_TOKEN_EXPIRED);
+                try {
+                    if (jwtProvider.isExpired(accessToken)) {
+                        // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                        sendErrorResponse(response, ACCESS_TOKEN_EXPIRED.getStatus().value(), "만료된 토큰");
+                        return;
+                    }
+                } catch (JwtException | IllegalArgumentException e) {
+                    // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                    log.debug("잘못된 JWT 토큰 형식 또는 그 외 에러 : {}", e.getMessage());
+                    sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus().value(), "잘못된 JWT 토큰 형식 또는 그 외 에러");
+                    return;
                 }
-                throw new PlayHiveException(INVALID_ACCESS_TOKEN);
+                // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus().value(), "인증되지 않은 토큰");
+                return;
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * 공통 에러 응답 처리 메서드
+     *
+     * @param response HttpServletResponse
+     * @param status   HTTP 상태 코드
+     * @param message  에러 메시지
+     * @throws IOException
+     */
+    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":%d}", message, status));
     }
 }

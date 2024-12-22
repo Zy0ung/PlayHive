@@ -3,6 +3,8 @@ package org.myteam.server.global.security.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.auth.repository.RefreshJpaRepository;
+import org.myteam.server.global.security.filter.AuthenticationEntryPointHandler;
+import org.myteam.server.global.security.filter.CustomAccessDeniedHandler;
 import org.myteam.server.global.security.handler.LogoutSuccessHandler;
 import org.myteam.server.global.security.filter.JwtAuthenticationFilter;
 import org.myteam.server.global.security.jwt.JwtProvider;
@@ -112,6 +114,13 @@ public class SecurityConfig {
                             .requestMatchers("/test/**").authenticated()      // /test/** 경로는 인증 필요
                             .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
                             .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
+            );
+
+        http
+            .exceptionHandling(errorHandling ->
+                    errorHandling
+                        .authenticationEntryPoint(new AuthenticationEntryPointHandler())
+                        .accessDeniedHandler(new CustomAccessDeniedHandler())
             );
 
         // 로그아웃 처리
