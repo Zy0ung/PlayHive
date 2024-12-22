@@ -26,13 +26,14 @@ public class ReIssueController {
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     public final static String TOKEN_PREFIX = "Bearer ";
+    public final static String TOKEN_REISSUE_PATH = "/reissue";
 
     public ReIssueController(ReIssueService reIssueService) {
         this.reIssueService = reIssueService;
     }
 
     // TODO_ : 만료시간이 지난 토큰은 주기적으로 삭제하는 스케쥴러 개발 필요
-    @PostMapping("/reissue")
+    @PostMapping(TOKEN_REISSUE_PATH)
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
         log.info("ReIssueController reissue START");
 
@@ -47,6 +48,7 @@ public class ReIssueController {
             response.addCookie(createCookie(
                     REFRESH_TOKEN_KEY,
                     URLEncoder.encode(TOKEN_PREFIX + tokens.getRefreshToken(), StandardCharsets.UTF_8),
+                    TOKEN_REISSUE_PATH,
                     24 * 60 * 60,
                     true
             ));

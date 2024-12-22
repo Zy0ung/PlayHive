@@ -18,6 +18,24 @@ public class CookieUtil {
      * @param isHttpOnly JavaScript 에서 접근 불가능하도록 설정
      * @return Cookie
      */
+    public static Cookie createCookie(String key, String value, String path, int maxAge, boolean isHttpOnly) {
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(maxAge);
+        // cookie.setSecure(isSecure); // Secure 설정 여부 (HTTPS에서만 사용)
+        cookie.setPath(path);
+        cookie.setHttpOnly(isHttpOnly);
+        return cookie;
+    }
+
+    /**
+     * 쿠키 생성
+     *
+     * @param key   쿠키 키
+     * @param value 쿠키 값
+     * @param maxAge 쿠키 유효시간 (초 단위)
+     * @param isHttpOnly JavaScript 에서 접근 불가능하도록 설정
+     * @return Cookie
+     */
     public static Cookie createCookie(String key, String value, int maxAge, boolean isHttpOnly) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(maxAge);

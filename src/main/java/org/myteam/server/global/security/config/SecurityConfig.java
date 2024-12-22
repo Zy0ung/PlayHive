@@ -33,6 +33,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
+
 @Slf4j
 @Configuration
 @EnableWebSecurity
@@ -110,7 +112,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorizeRequests ->
                     authorizeRequests
                             .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
-                            .requestMatchers("/reissue").permitAll()          // 토큰 재발급
+                            .requestMatchers(TOKEN_REISSUE_PATH).permitAll()          // 토큰 재발급
                             .requestMatchers("/test/**").authenticated()      // /test/** 경로는 인증 필요
                             .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
                             .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
