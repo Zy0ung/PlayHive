@@ -31,9 +31,17 @@ jobs:
           
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
+      
+      - name: Set environment variables
+        run: |
+          echo "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" >> $GITHUB_ENV
+          echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> $GITHUB_ENV
 
-      - name: Build with Gradle
+      - name: Build and Test with Gradle
         run: ./gradlew clean build --info
+        env:
+          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
 
       - name: List JAR Files
         run: ls -la build/libs/
@@ -42,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: spring-app
-          path: build/libs/server-0.0.1-SNAPSHOT.jar
+          path: build/libs/*.jar
 
   deploy:
     needs: build
