@@ -28,9 +28,12 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew clean build --info
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
