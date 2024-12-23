@@ -13,6 +13,7 @@ import org.myteam.server.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URLEncoder;
@@ -38,9 +39,10 @@ public class MyInfoController {
     private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
 
     @PostMapping("/create")
-    public ResponseEntity<?> create(
-            @RequestBody @Valid MemberSaveRequest memberSaveRequest,
-            HttpServletResponse httpServletResponse) {
+    public ResponseEntity<?> create(@RequestBody @Valid MemberSaveRequest memberSaveRequest,
+                                    BindingResult bindingResult,
+                                    HttpServletResponse httpServletResponse
+    ) {
         log.info("MyInfoController create 메서드 실행");
         MemberResponse response = memberService.create(memberSaveRequest);
 
@@ -68,7 +70,9 @@ public class MyInfoController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<?> update(@RequestBody @Valid MemberUpdateRequest memberUpdateRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> update(@RequestBody @Valid MemberUpdateRequest memberUpdateRequest,
+                                    BindingResult bindingResult,
+                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("MyInfoController update 메서드 실행 : {}", memberUpdateRequest.toString());
         String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
         MemberResponse response = memberService.update(email, memberUpdateRequest);
@@ -76,7 +80,9 @@ public class MyInfoController {
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody @Valid PasswordChangeRequest passwordChangeRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> changePassword(@RequestBody @Valid PasswordChangeRequest passwordChangeRequest,
+                                            BindingResult bindingResult,
+                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("MyInfoController changePassword 메서드 실행 : {}", passwordChangeRequest.toString());
         String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
         memberService.changePassword(email, passwordChangeRequest);
@@ -84,7 +90,9 @@ public class MyInfoController {
     }
 
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@RequestBody @Valid MemberDeleteRequest memberDeleteRequest, @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<?> delete(@RequestBody @Valid MemberDeleteRequest memberDeleteRequest,
+                                    BindingResult bindingResult,
+                                    @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("MyInfoController delete 메서드 실행");
         String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
 

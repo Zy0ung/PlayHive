@@ -12,6 +12,7 @@ import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.dto.MemberStatusUpdateRequest;
 import org.myteam.server.member.service.MemberService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import static org.myteam.server.global.security.jwt.JwtProvider.HEADER_AUTHORIZATION;
@@ -28,7 +29,7 @@ public class MemberController {
      * 이메일로 사용자 존재 여부 확인
      */
     @GetMapping("/exists/email")
-    public ResponseEntity<?> existsByEmail(@Valid ExistMemberRequest existMemberRequest) {
+    public ResponseEntity<?> existsByEmail(@Valid ExistMemberRequest existMemberRequest, BindingResult bindingResult) {
         log.info("MemberController existsByEmail 메서드 실행 : {}", existMemberRequest.getEmail());
         boolean exists = memberService.existsByEmail(existMemberRequest.getEmail());
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "이메일 존재 여부 확인", exists));
@@ -38,7 +39,7 @@ public class MemberController {
      * 닉네임으로 사용자 존재 여부 확인
      */
     @GetMapping("/exists/nickname")
-    public ResponseEntity<?> existsByNickname(@Valid ExistMemberRequest existMemberRequest) {
+    public ResponseEntity<?> existsByNickname(@Valid ExistMemberRequest existMemberRequest, BindingResult bindingResult) {
         log.info("MemberController existsByNickname 메서드 실행 : {}", existMemberRequest.getNickname());
         boolean exists = memberService.existsByNickname(existMemberRequest.getNickname());
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "닉네임 존재 여부 확인", exists));
@@ -46,10 +47,9 @@ public class MemberController {
 
     // TODO_ : 헤더에 publicId 를 넣어달라고 하고 받아서... 끄내고 아이디 조회해서 그걸로 다시 own 검토하면 될 것으로 보임
     @PutMapping("/status")
-    public ResponseEntity<?> updateStatus(
-             @RequestBody @Valid MemberStatusUpdateRequest memberStatusUpdateRequest,
-            HttpServletRequest httpServletRequest
-    ) {
+    public ResponseEntity<?> updateStatus(@RequestBody @Valid MemberStatusUpdateRequest memberStatusUpdateRequest,
+                                          BindingResult bindingResult,
+                                          HttpServletRequest httpServletRequest) {
         log.info("MyInfoController updateStatus 메서드 실행");
         String authorizationHeader = httpServletRequest.getHeader(HEADER_AUTHORIZATION);
 
