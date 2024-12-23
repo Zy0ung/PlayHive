@@ -22,7 +22,7 @@ import java.util.UUID;
 import static org.myteam.server.global.exception.ErrorCode.*;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
-import static org.myteam.server.util.CookieUtil.getCookie;
+import static org.myteam.server.util.cookie.CookieUtil.getCookie;
 
 @Slf4j
 @Service

@@ -1,4 +1,4 @@
-package org.myteam.server.oauth2.logout.util;
+package org.myteam.server.oauth2.unlink.util;
 
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.exception.ErrorCode;
@@ -17,7 +17,7 @@ import static org.myteam.server.oauth2.constant.OAuth2ServiceProvider.*;
 
 @Slf4j
 @Component
-public class OAuth2LogoutHelper {
+public class OAuth2UnlinkHelper {
 
     private static final Map<String, String> LOGOUT_URLS = new HashMap<>();
 

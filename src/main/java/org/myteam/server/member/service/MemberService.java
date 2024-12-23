@@ -2,6 +2,7 @@ package org.myteam.server.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberStatus;
@@ -61,7 +62,7 @@ public class MemberService {
 
         // 2. 아이디 미존재 체크
         if (memberOP.isEmpty()) {
-            throw new PlayHiveException("아이디가 존재하지 않습니다.");
+            throw new PlayHiveException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 3. 자신의 계정이 아닌 다른 계정을 수정하려고 함
@@ -115,7 +116,7 @@ public class MemberService {
 
         // 비밀번호 일치 여부 확인
         boolean isPWValid = findMember.validatePassword(password, passwordEncoder);
-        if (!isPWValid) throw new PlayHiveException("비밀번호가 일치하지 않습니다.");
+        if (!isPWValid) throw new PlayHiveException(NO_PERMISSION);
 
         memberJpaRepository.delete(findMember);
     }

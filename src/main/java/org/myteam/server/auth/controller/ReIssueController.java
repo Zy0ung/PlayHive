@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import static org.myteam.server.util.CookieUtil.createCookie;
+import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 /**
  * TODO_ : 리프레시 토큰에 대한 블랙 리스트 작성

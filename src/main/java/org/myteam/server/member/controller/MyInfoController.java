@@ -26,7 +26,7 @@ import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
-import static org.myteam.server.util.CookieUtil.createCookie;
+import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 @RestController

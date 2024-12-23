@@ -1,11 +1,11 @@
-package org.myteam.server.oauth2.logout.controller;
+package org.myteam.server.oauth2.unlink.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.oauth2.constant.OAuth2ServiceProvider;
-import org.myteam.server.oauth2.logout.util.OAuth2LogoutHelper;
+import org.myteam.server.oauth2.unlink.util.OAuth2UnlinkHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/oauth2")
 @RequiredArgsConstructor
 @Deprecated
-public class OAuth2LogoutController {
+public class OAuth2UnlinkController {
 
-    private final OAuth2LogoutHelper oAuth2LogoutHelper;
+    private final OAuth2UnlinkHelper oAuth2UnlinkHelper;
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(
@@ -43,7 +43,7 @@ public class OAuth2LogoutController {
 
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String accessToken = authorizationHeader.replace("Bearer ", "");
-                oAuth2LogoutHelper.revokeToken(OAuth2ServiceProvider.NAVER, accessToken);
+                oAuth2UnlinkHelper.revokeToken(OAuth2ServiceProvider.NAVER, accessToken);
             } else {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Authorization 헤더가 없거나 올바르지 않습니다.");
