@@ -104,6 +104,11 @@ jobs:
             DEPLOY_DIR=~/play-hive
             JAR_FILE=server-0.0.1-SNAPSHOT.jar
 
+            # Set environment variables for the current session
+            export EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}
+            export EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+            export SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}
+
             # Kill process on port 8080
             echo "Finding and killing process on port 8080..."
             PID=$(sudo lsof -t -i:8080)
@@ -118,7 +123,7 @@ jobs:
             echo "Navigating to deployment directory: $DEPLOY_DIR"
             cd $DEPLOY_DIR || exit
 
-            # Start the new server
+            # Start the new server with environment variables
             echo "Starting new server: $JAR_FILE"
-            nohup java -jar $JAR_FILE > app.log 2>&1 &
+            nohup env EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} SENDER_EMAIL=${{ secrets.SENDER_EMAIL }} java -jar $JAR_FILE > app.log 2>&1 &
             echo "Server started. Logs can be found in $DEPLOY_DIR/app.log"
