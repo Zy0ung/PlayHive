@@ -36,7 +36,7 @@ jobs:
         run: |
           echo "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" >> $GITHUB_ENV
           echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> $GITHUB_ENV
-          echo "EMAIL_PASSWORD=${{ secrets.SENDER_EMAIL }}" >> $GITHUB_ENV
+          echo "SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}" >> $GITHUB_ENV
         env:
           EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
           EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
