@@ -93,6 +93,20 @@ jobs:
           source: "*.jar"
           target: "~/play-hive"
 
+      - name: Set environment variables on AWS
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.AWS_SERVER_IP }}
+          username: ${{ secrets.AWS_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo "Setting environment variables on AWS server..."
+            echo "export EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" >> ~/.bashrc
+            echo "export EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> ~/.bashrc
+            echo "export SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}" >> ~/.bashrc
+            source ~/.bashrc
+            echo "Environment variables set successfully."
+
       - name: Restart Server
         uses: appleboy/ssh-action@v0.1.10
         with:
