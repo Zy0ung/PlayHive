@@ -29,15 +29,15 @@ public class AdminController {
     @GetMapping("/email")
     public ResponseEntity<?> getByEmail(@Valid MemberGetRequest memberGetRequest) {
         log.info("MemberController getByEmail 메서드 실행 : {}", memberGetRequest);
-        Member member = memberService.getByEmail(memberGetRequest.getEmail());
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", new MemberResponse(member)), HttpStatus.OK);
+        MemberResponse response = memberService.getByEmail(memberGetRequest.getEmail());
+        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", response), HttpStatus.OK);
     }
 
     @GetMapping("/nickname")
     public ResponseEntity<?> getByNickname(@Valid MemberGetRequest memberGetRequest) {
         log.info("MemberController getByNickname 메서드 실행 : {}", memberGetRequest);
-        Member member = memberService.findByNickname(memberGetRequest.getNickname());
-        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", new MemberResponse(member)), HttpStatus.OK);
+        MemberResponse response = memberService.getByNickname(memberGetRequest.getNickname());
+        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", response), HttpStatus.OK);
     }
 
     @GetMapping

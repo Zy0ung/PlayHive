@@ -11,6 +11,7 @@ import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberJpaRepository;
+import org.myteam.server.member.repository.MemberRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,10 +35,12 @@ public class MemberService {
 
     private final JwtProvider jwtProvider;
 
+    private final MemberRepository memberRepository;
+
     @Transactional
     public MemberResponse create(MemberSaveRequest memberSaveRequest) throws PlayHiveException {
         // 1. 동일한 유저 이름 존재 검사
-        Optional<Member> memberOP = memberJpaRepository.findByEmail(memberSaveRequest.getEmail());
+        Optional<Member> memberOP = memberRepository.findByEmail(memberSaveRequest.getEmail());
 
         if (memberOP.isPresent()) {
             // 아이디가 중복 되었다는 것
@@ -54,7 +57,7 @@ public class MemberService {
     @Transactional
     public MemberResponse update(String email, MemberUpdateRequest memberUpdateRequest) {
         // 1. 동일한 유저 이름 존재 검사
-        Optional<Member> memberOP = memberJpaRepository.findByEmail(email);
+        Optional<Member> memberOP = memberRepository.findByEmail(email);
 
         // 2. 아이디 미존재 체크
         if (memberOP.isEmpty()) {
@@ -75,30 +78,36 @@ public class MemberService {
     }
 
     public MemberResponse getByPublicId(UUID publicId) {
-        return new MemberResponse(memberJpaRepository.findByPublicId(publicId)
-                        .orElseThrow(() -> new PlayHiveException(publicId + " 는 존재하지 않는 PublicId 입니다")));
+        return new MemberResponse(memberRepository.getByByPublicId(publicId));
     }
 
     // 엔티티 반환 get~
-    public Member getByEmail(String email) {
-        return memberJpaRepository.findByEmail(email)
-                .orElseThrow(() -> new PlayHiveException(email + " 는 존재하지 않는 사용자 입니다"));
-    }
+    // public Member getByEmail(String email) {
+    //     return memberJpaRepository.findByEmail(email)
+    //             .orElseThrow(() -> new PlayHiveException(email + " 는 존재하지 않는 사용자 입니다"));
+    // }
 
     // Optional 반환은 find~
-    public Member findByNickname(String nickname) {
-        return memberJpaRepository.findByNickname(nickname)
-                .orElseThrow(() -> new PlayHiveException(nickname + " 는 존재하지 않는 사용자 입니다"));
+    // public Member findByNickname(String nickname) {
+    //     return memberJpaRepository.findByNickname(nickname)
+    //             .orElseThrow(() -> new PlayHiveException(nickname + " 는 존재하지 않는 사용자 입니다"));
+    // }
+
+    public MemberResponse getByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .map(MemberResponse::new)
+                .orElseThrow(() -> new PlayHiveException(email + " 는 존재하지 않는 이메일 입니다"));
     }
 
-    // public Member getByEmailAndPublicId(String email, UUID publicId) {
-    //     return memberJpaRepository.findByEmailAndPublicId(email, publicId)
-    //             .orElseThrow(() -> new RuntimeException(email + " 는 존재하지 않는 사용자 입니다"));
-    // }
+    public MemberResponse getByNickname(String nickname) {
+        return memberRepository.findByNickname(nickname)
+                .map(MemberResponse::new)
+                .orElseThrow(() -> new PlayHiveException(nickname + " 는 존재하지 않는 닉네임 입니다"));
+    }
 
     @Transactional
     public void delete(String email, String password) {
-        Member findMember = getByEmail(email);
+        Member findMember = memberRepository.getByEmail(email);
 
         // 자신의 계정인지 체크
         boolean isOwnValid = findMember.verifyOwnEmail(email);
@@ -113,7 +122,7 @@ public class MemberService {
 
     @Transactional
     public void delete(String email) {
-        Member findMember = getByEmail(email);
+        Member findMember = memberRepository.getByEmail(email);
         memberJpaRepository.delete(findMember);
     }
 
@@ -123,7 +132,7 @@ public class MemberService {
 
     @Transactional
     public void changePassword(String email, PasswordChangeRequest passwordChangeRequest) {
-        Member findMember = getByEmail(email);
+        Member findMember = memberRepository.getByEmail(email);
         boolean isEqual = passwordChangeRequest.checkPasswordAndConfirmPassword();
         if (!isEqual) throw new PlayHiveException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
         boolean isValid = findMember.validatePassword(passwordChangeRequest.getPassword(), passwordEncoder);
@@ -136,8 +145,7 @@ public class MemberService {
     public void updateStatus(String extractedEmail, String targetEmail, MemberStatus memberStatus) {
         log.info("토큰에서 추출된 이메일: {}, 상태를 변경할 대상 이메일: {}, 새로운 상태: {}", extractedEmail, targetEmail, memberStatus);
 
-        Member member = memberJpaRepository.findByEmail(targetEmail)
-                .orElseThrow(() -> new PlayHiveException(targetEmail + " 는 존재하지 않는 사용자입니다."));
+        Member member = memberRepository.getByEmail(targetEmail);
 
         // 자신의 계정이 아닌 다른 계정을 수정하려고 함
         if (!member.verifyOwnEmail(extractedEmail)) {
