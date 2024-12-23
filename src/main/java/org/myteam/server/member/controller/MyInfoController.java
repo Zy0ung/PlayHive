@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.UUID;
 
+import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
@@ -56,6 +57,7 @@ public class MyInfoController {
         // 응답 헤더 설정
         httpServletResponse.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
         httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
+        httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원가입 성공", response), HttpStatus.CREATED);
     }
 

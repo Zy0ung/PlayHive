@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
 
+import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.util.CookieUtil.createCookie;
@@ -65,6 +66,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         // redirect 순간 Header 값 날아감
         // response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
         response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
+        response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
 
         log.debug("print accessToken: {}", accessToken);
         log.debug("print refreshToken: {}", refreshToken);

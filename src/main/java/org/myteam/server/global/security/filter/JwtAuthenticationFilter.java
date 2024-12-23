@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 
+import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
@@ -101,6 +102,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
             response.setStatus(HttpStatus.OK.value());
 
 
