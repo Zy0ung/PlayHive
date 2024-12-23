@@ -84,6 +84,25 @@ jobs:
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/play-hive
-            pkill -f 'java -jar' || true
-            nohup java -jar server-0.0.1-SNAPSHOT.jar > app.log 2>&1 &
+            # Define variables
+            DEPLOY_DIR=~/play-hive
+            JAR_FILE=server-0.0.1-SNAPSHOT.jar
+
+            # Kill process on port 8080
+            echo "Finding and killing process on port 8080..."
+            PID=$(sudo lsof -t -i:8080)
+            if [ -n "$PID" ]; then
+              echo "Killing process with PID $PID..."
+              sudo kill -9 $PID
+            else
+              echo "No process found on port 8080."
+            fi
+
+            # Navigate to deployment directory
+            echo "Navigating to deployment directory: $DEPLOY_DIR"
+            cd $DEPLOY_DIR || exit
+
+            # Start the new server
+            echo "Starting new server: $JAR_FILE"
+            nohup java -jar $JAR_FILE > app.log 2>&1 &
+            echo "Server started. Logs can be found in $DEPLOY_DIR/app.log"
