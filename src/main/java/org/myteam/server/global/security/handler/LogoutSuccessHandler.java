@@ -8,6 +8,7 @@ import org.myteam.server.auth.repository.RefreshJpaRepository;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -43,6 +44,12 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
         //get refresh token
         String refresh = null;
         Cookie[] cookies = request.getCookies();
+
+        if (cookies == null || cookies.length == 0) {
+            sendErrorResponse(response, EMPTY_COOKIE.getStatus(), "쿠키가 비어있습니다.");
+            return;
+        }
+
         for (Cookie cookie : cookies) {
             if (cookie.getName().equals(REFRESH_TOKEN_KEY)) {
                 refresh = cookie.getValue();
@@ -51,7 +58,7 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
 
         //refresh null check
         if (refresh == null) {
-            sendErrorResponse(response, INVALID_REFRESH_TOKEN.getStatus().value(), "인증되지 않은 토큰");
+            sendErrorResponse(response, INVALID_REFRESH_TOKEN.getStatus(), "인증되지 않은 토큰");
             return;
         }
 
@@ -64,17 +71,17 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
         try {
             Boolean expired = jwtProvider.isExpired(refresh);
             if (expired) {
-                sendErrorResponse(response, REFRESH_TOKEN_EXPIRED.getStatus().value(), "만료된 토큰");
+                sendErrorResponse(response, REFRESH_TOKEN_EXPIRED.getStatus(), "만료된 토큰");
             }
         } catch (ExpiredJwtException e) {
-            sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus().value(), "잘못된 JWT 토큰 형식");
+            sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus(), "잘못된 JWT 토큰 형식");
             return;
         }
 
         // 토큰이 refresh인지 확인 (발급시 페이로드에 명시)
         String category = jwtProvider.getCategory(refresh);
         if (!category.equals(TOKEN_CATEGORY_REFRESH)) {
-            sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus().value(), "잘못된 JWT 토큰 형식");
+            sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus(), "잘못된 JWT 토큰 형식");
             return;
         }
 
@@ -83,7 +90,7 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
         //DB에 저장되어 있는지 확인
         Boolean isExist = refreshJpaRepository.existsByRefreshAndPublicId(refresh, publicId);
         if (!isExist) {
-            sendErrorResponse(response, INVALID_REFRESH_TOKEN.getStatus().value(), "인증되지 않은 토큰");
+            sendErrorResponse(response, INVALID_REFRESH_TOKEN.getStatus(), "인증되지 않은 토큰");
             return;
         }
 
@@ -107,14 +114,14 @@ public class LogoutSuccessHandler implements org.springframework.security.web.au
      * 공통 에러 응답 처리 메서드
      *
      * @param response HttpServletResponse
-     * @param status   HTTP 상태 코드
-     * @param message  에러 메시지
+     * @param httpStatus HTTP 상태 오브젝트
+     * @param message 메시지
      * @throws IOException
      */
-    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus httpStatus, String message) throws IOException {
+        response.setStatus(httpStatus.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":%d}", message, status));
+        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":\"%s\"}", message, httpStatus.name()));
     }
 }

@@ -13,6 +13,8 @@ public enum ErrorCode {
     // 400 Bad Request
     INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "Invalid password"),
     UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "Not Supported OAuth2 provider"),
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid parameter value"),
+    EMPTY_COOKIE(HttpStatus.BAD_REQUEST, "Cookie value is empty"),
 
     // 401 Unauthorized,
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),

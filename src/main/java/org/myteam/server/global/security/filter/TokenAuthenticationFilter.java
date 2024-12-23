@@ -15,6 +15,7 @@ import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.entity.Member;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -44,7 +45,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
                 if (!accessCategory.equals(TOKEN_CATEGORY_ACCESS)) {
                     // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
-                    sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus().value(), "잘못된 토큰 유형");
+                    sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus(), "잘못된 토큰 유형");
                     return;
                 }
 
@@ -70,17 +71,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 try {
                     if (jwtProvider.isExpired(accessToken)) {
                         // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
-                        sendErrorResponse(response, ACCESS_TOKEN_EXPIRED.getStatus().value(), "만료된 토큰");
+                        sendErrorResponse(response, ACCESS_TOKEN_EXPIRED.getStatus(), "만료된 토큰");
                         return;
                     }
                 } catch (JwtException | IllegalArgumentException e) {
                     // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
                     log.debug("잘못된 JWT 토큰 형식 또는 그 외 에러 : {}", e.getMessage());
-                    sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus().value(), "잘못된 JWT 토큰 형식 또는 그 외 에러");
+                    sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus(), "잘못된 JWT 토큰 형식 또는 그 외 에러");
                     return;
                 }
                 // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
-                sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus().value(), "인증되지 않은 토큰");
+                sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus(), "인증되지 않은 토큰");
                 return;
             }
         }
@@ -91,14 +92,14 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
      * 공통 에러 응답 처리 메서드
      *
      * @param response HttpServletResponse
-     * @param status   HTTP 상태 코드
-     * @param message  에러 메시지
+     * @param httpStatus HTTP 상태 오브젝트
+     * @param message 메시지
      * @throws IOException
      */
-    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus httpStatus, String message) throws IOException {
+        response.setStatus(httpStatus.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
-        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":%d}", message, status));
+        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":\"%s\"}", message, httpStatus.name()));
     }
 }

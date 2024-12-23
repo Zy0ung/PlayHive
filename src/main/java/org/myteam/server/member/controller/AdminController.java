@@ -12,6 +12,7 @@ import org.myteam.server.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,14 +28,14 @@ public class AdminController {
     private final MemberService memberService;
 
     @GetMapping("/email")
-    public ResponseEntity<?> getByEmail(@Valid MemberGetRequest memberGetRequest) {
+    public ResponseEntity<?> getByEmail(@Valid MemberGetRequest memberGetRequest, BindingResult bindingResult) {
         log.info("MemberController getByEmail 메서드 실행 : {}", memberGetRequest);
         MemberResponse response = memberService.getByEmail(memberGetRequest.getEmail());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", response), HttpStatus.OK);
     }
 
     @GetMapping("/nickname")
-    public ResponseEntity<?> getByNickname(@Valid MemberGetRequest memberGetRequest) {
+    public ResponseEntity<?> getByNickname(@Valid MemberGetRequest memberGetRequest, BindingResult bindingResult) {
         log.info("MemberController getByNickname 메서드 실행 : {}", memberGetRequest);
         MemberResponse response = memberService.getByNickname(memberGetRequest.getNickname());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 정보 조회 성공", response), HttpStatus.OK);
@@ -50,7 +51,7 @@ public class AdminController {
 
     @Deprecated
     @DeleteMapping("/delete")
-    public ResponseEntity<?> delete(@RequestBody MemberDeleteRequest memberDeleteRequest) {
+    public ResponseEntity<?> delete(@RequestBody MemberDeleteRequest memberDeleteRequest, BindingResult bindingResult) {
         log.info("MemberController delete( 메서드 실행 : {}", memberDeleteRequest);
         String email = memberDeleteRequest.getEmail();
         memberService.delete(email);

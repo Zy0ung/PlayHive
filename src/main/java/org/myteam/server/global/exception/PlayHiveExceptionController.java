@@ -15,6 +15,6 @@ public class PlayHiveExceptionController {
         log.error("PlayHiveExceptionController e : {}", e.getMessage());
         return ResponseEntity
                 .status(e.getErrorCode().getStatus())
-                .body(new ErrorResponse(e.getErrorCode().getStatus(), e.getMessage()));
+                .body(new ErrorResponse(e.getErrorCode().getStatus(), e.getMessage(), e.getErrorMap()));
     }
 }

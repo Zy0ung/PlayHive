@@ -27,6 +27,7 @@ public class ReIssueController {
     private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     public final static String TOKEN_PREFIX = "Bearer ";
     public final static String TOKEN_REISSUE_PATH = "/reissue";
+    public final static String LOGOUT_PATH = "/logout";
 
     public ReIssueController(ReIssueService reIssueService) {
         this.reIssueService = reIssueService;
@@ -49,6 +50,14 @@ public class ReIssueController {
                     REFRESH_TOKEN_KEY,
                     URLEncoder.encode(TOKEN_PREFIX + tokens.getRefreshToken(), StandardCharsets.UTF_8),
                     TOKEN_REISSUE_PATH,
+                    24 * 60 * 60,
+                    true
+            ));
+
+            response.addCookie(createCookie(
+                    REFRESH_TOKEN_KEY,
+                    URLEncoder.encode(TOKEN_PREFIX + tokens.getRefreshToken(), StandardCharsets.UTF_8),
+                    LOGOUT_PATH,
                     24 * 60 * 60,
                     true
             ));
