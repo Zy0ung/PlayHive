@@ -1,4 +1,4 @@
-package org.myteam.server.auth.util;
+package org.myteam.server.global.security.util;
 
 import java.util.Random;
 

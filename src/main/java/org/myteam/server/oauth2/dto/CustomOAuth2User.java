@@ -7,14 +7,18 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 @Getter
 public class CustomOAuth2User implements OAuth2User {
+    private final String NOT_USED = "Not Used";
     private String username;
     private String role;
-    public CustomOAuth2User(String username, String role) {
+    private UUID publicId;
+    public CustomOAuth2User(String username, String role, UUID publicId) {
         this.username = username;
         this.role = role;
+        this.publicId = publicId;
     }
     @Override
     public <A> A getAttribute(String name) {
@@ -35,9 +39,12 @@ public class CustomOAuth2User implements OAuth2User {
         });
         return collection;
     }
+
+    // 미사용
     @Override
     public String getName() {
-//        return this.username;
-        return "randomID";
+        return NOT_USED;
     }
+
+    public UUID getPublicId() { return publicId; }
 }
