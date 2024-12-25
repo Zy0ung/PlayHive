@@ -15,14 +15,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CategorySaveRequest {
     @NotBlank
-    @Pattern(regexp = "^[a-zA-Z가-힣0-9\\s]{1,20}$", message = "한글/영문 1~20자 이내로 작성해주세요")
+    @Pattern(regexp = "^[a-zA-Z가-힣0-9_\\-\\s]{1,20}$", message = "한글/영문 1~20자 이내로 작성해주세요")
     private String name;
     private Long parentId; // 부모 카테고리의 ID
 
     @NotNull
     @Min(value = 0, message = "깊이는 0 이상이어야 합니다.")
-    private Integer depth = 0;
+    private Integer depth;
 
-    @Min(value = 1, message = "순서는 1 이상이어야 합니다.")
-    private Integer orderIndex = 1;
+    // 받지 않기로 함 (자동생성)
+    // @Min(value = 1, message = "순서는 1 이상이어야 합니다.")
+    // private Integer orderIndex = 1;
 }

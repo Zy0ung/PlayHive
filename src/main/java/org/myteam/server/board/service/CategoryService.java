@@ -35,10 +35,29 @@ public class CategoryService {
 
         if (categorySaveRequest.getParentId() != null) {
             Category parentCategory = categoryRepository.getById(categorySaveRequest.getParentId()); // 부모 카테고리 Entity 조회
+            Integer depth = categorySaveRequest.getDepth();
+            Integer parentDepth = parentCategory.getDepth();
+
+            if (depth != (parentDepth + 1)) {
+                log.warn("부모 카테고리와의 Depth 관계가 잘못 되었습니다.");
+                throw new PlayHiveException(INVALID_PARAMETER);
+            }
+
             categoryEntity.updateOrderIndex(
                     allocateNextOrderIndex(parentCategory) // calculateOrderIndex(parentCategory.getChildren())
             );
             categoryEntity.setParent(parentCategory); // 편의 메서드
+        } else {
+            // parentId 가 null 인 경우
+            Integer depth = categorySaveRequest.getDepth();
+
+            if (depth > 0) {
+                log.warn("부모 카테고리 ID가 비어있습니다.");
+                throw new PlayHiveException(INVALID_PARAMETER);
+            }
+
+            categoryEntity.updateOrderIndex(calculateOrderIndex(categoryJpaRepository.findByParentIsNull()));
+            // categoryEntity.updateOrderIndex();
         }
 
         Category savedEntity = categoryJpaRepository.save(categoryEntity);
@@ -198,13 +217,13 @@ public class CategoryService {
     }
 
     /**
-     * 자식 카테고리 목록의 갯수로 부터 다음 순번을 계산
+     * 카테고리 목록의 갯수로 부터 다음 순번을 계산
      *
-     * @param children 자식 카테고리 목록
-     * @return 다음 자식 카테고리 순번
+     * @param list 카테고리 목록
+     * @return 다음 카테고리 순번
      */
-    private int calculateOrderIndex(List<?> children) {
-        return (children == null) ? 1 : children.size() + 1;
+    private int calculateOrderIndex(List<?> list) {
+        return (list == null) ? 1 : list.size() + 1;
     }
 
     /**

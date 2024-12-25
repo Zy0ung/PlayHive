@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CategoryUpdateRequest {
     @NotBlank
-    @Pattern(regexp = "^[a-zA-Z가-힣0-9\\s]{1,20}$", message = "한글/영문 1~20자 이내로 작성해주세요")
+    @Pattern(regexp = "^[a-zA-Z가-힣0-9_\\-\\s]{1,20}$", message = "한글/영문 1~20자 이내로 작성해주세요")
     private String name;
 
     // 수정 시 무조건 순번이 존재한다고 가정
