@@ -23,6 +23,8 @@ public class CategorySaveRequest {
     @Min(value = 0, message = "깊이는 0 이상이어야 합니다.")
     private Integer depth;
 
+    private String link;
+
     // 받지 않기로 함 (자동생성)
     // @Min(value = 1, message = "순서는 1 이상이어야 합니다.")
     // private Integer orderIndex = 1;

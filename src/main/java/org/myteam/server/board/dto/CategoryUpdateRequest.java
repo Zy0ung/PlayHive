@@ -22,4 +22,6 @@ public class CategoryUpdateRequest {
     @NotNull
     @Min(value = 1, message = "순서는 1 이상이어야 합니다.")
     private Integer orderIndex;
+
+    private String link;
 }

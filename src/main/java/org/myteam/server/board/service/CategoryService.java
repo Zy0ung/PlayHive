@@ -88,10 +88,13 @@ public class CategoryService {
         if (targetCategory != null) {
             // 변경 순번(orderIndex)과 동일한 카테고리가 존재
             category.updateName(categoryUpdateRequest.getName());
+            category.updateLink(categoryUpdateRequest.getLink());
             swapOrderIndex(category, targetCategory);
         } else {
             // 이름 및 순번 변경
-            category.updateNameAndOrderIndex(categoryUpdateRequest.getName(), categoryUpdateRequest.getOrderIndex());
+            category.updateName(categoryUpdateRequest.getName());
+            category.updateLink(categoryUpdateRequest.getLink());
+            category.updateOrderIndex(categoryUpdateRequest.getOrderIndex());
         }
 
         // 4. 수정된 결과를 DTO로 변환 후 반환
@@ -99,10 +102,10 @@ public class CategoryService {
     }
 
     private void swapOrderIndex(Category sourceCategory, Category targetCategory) {
+        // orderIndex 교환용 변수
         int swapOrderIndex = targetCategory.getOrderIndex();
-        // 교환
-        targetCategory.updateNameAndOrderIndex(targetCategory.getName(), sourceCategory.getOrderIndex());
-        sourceCategory.updateNameAndOrderIndex(sourceCategory.getName(), swapOrderIndex);
+        targetCategory.updateOrderIndex(sourceCategory.getOrderIndex());
+        sourceCategory.updateOrderIndex(swapOrderIndex);
     }
 
     @Transactional

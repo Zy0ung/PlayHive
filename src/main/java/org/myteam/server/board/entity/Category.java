@@ -33,10 +33,13 @@ public class Category {
     @OneToMany(mappedBy = "parent")
     private List<Category> children = new ArrayList<>();
 
+    private String link;
+
     @Builder
     public Category(CategorySaveRequest categorySaveRequest) {
         this.name = categorySaveRequest.getName();
         this.depth = categorySaveRequest.getDepth();
+        this.link = categorySaveRequest.getLink();
     }
 
     /**
@@ -65,13 +68,11 @@ public class Category {
     }
 
     /**
-     * 카테고리명과 순번을 변경
-     * @param name 이름
-     * @param orderIndex 순번
+     * 카테고리 링크를 변경
+     * @param link 링크
      */
-    public void updateNameAndOrderIndex(String name, Integer orderIndex) {
-        this.name = name;
-        this.orderIndex = orderIndex;
+    public void updateLink(String link) {
+        this.link = link;
     }
 
     // 삭제 로직: 자식 삭제 및 orderIndex 재정렬
