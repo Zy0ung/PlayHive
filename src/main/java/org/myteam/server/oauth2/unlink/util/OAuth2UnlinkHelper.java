@@ -13,6 +13,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.myteam.server.global.exception.ErrorCode.UNSUPPORTED_OAUTH_PROVIDER;
 import static org.myteam.server.oauth2.constant.OAuth2ServiceProvider.*;
 
 @Slf4j
@@ -39,7 +40,7 @@ public class OAuth2UnlinkHelper {
 
         String logoutUrl = LOGOUT_URLS.get(provider);
         if (logoutUrl == null) {
-            throw new PlayHiveException(provider);
+            throw new PlayHiveException(UNSUPPORTED_OAUTH_PROVIDER, provider);
         }
 
         Map<String, String> uriVariables = new HashMap<>();

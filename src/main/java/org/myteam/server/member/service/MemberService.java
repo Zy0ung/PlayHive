@@ -22,8 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.myteam.server.global.exception.ErrorCode.NO_PERMISSION;
-import static org.myteam.server.global.exception.ErrorCode.USER_ALREADY_EXISTS;
+import static org.myteam.server.global.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -97,13 +96,13 @@ public class MemberService {
     public MemberResponse getByEmail(String email) {
         return memberRepository.findByEmail(email)
                 .map(MemberResponse::new)
-                .orElseThrow(() -> new PlayHiveException(email + " 는 존재하지 않는 이메일 입니다"));
+                .orElseThrow(() -> new PlayHiveException(RESOURCE_NOT_FOUND, email + " 는 존재하지 않는 이메일 입니다"));
     }
 
     public MemberResponse getByNickname(String nickname) {
         return memberRepository.findByNickname(nickname)
                 .map(MemberResponse::new)
-                .orElseThrow(() -> new PlayHiveException(nickname + " 는 존재하지 않는 닉네임 입니다"));
+                .orElseThrow(() -> new PlayHiveException(RESOURCE_NOT_FOUND, nickname + " 는 존재하지 않는 닉네임 입니다"));
     }
 
     @Transactional
@@ -135,9 +134,9 @@ public class MemberService {
     public void changePassword(String email, PasswordChangeRequest passwordChangeRequest) {
         Member findMember = memberRepository.getByEmail(email);
         boolean isEqual = passwordChangeRequest.checkPasswordAndConfirmPassword();
-        if (!isEqual) throw new PlayHiveException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+        if (!isEqual) throw new PlayHiveException(INVALID_PARAMETER, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
         boolean isValid = findMember.validatePassword(passwordChangeRequest.getPassword(), passwordEncoder);
-        if (!isValid) throw new PlayHiveException("현재 비밀번호가 일치하지 않습니다.");
+        if (!isValid) throw new PlayHiveException(UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.");
 
         findMember.updatePassword(passwordChangeRequest, passwordEncoder); // 비밀번호 변경
     }

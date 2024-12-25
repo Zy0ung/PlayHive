@@ -29,11 +29,11 @@ public class PlayHiveException extends RuntimeException {
     }
 
     /**
+     * @param errorCode ErrorCode에 정의된 메시지 반환
      * @param message 정의되지 않은 예외 처리
-     * @return RESOURCE_NOT_FOUND 반환하도록 임시 처리 TODO : 추후 변경 처리 하면 좋을듯 함
      */
-    public PlayHiveException(String message) {
+    public PlayHiveException(ErrorCode errorCode, String message) {
         super(message);
-        this.errorCode = ErrorCode.RESOURCE_NOT_FOUND;
+        this.errorCode = errorCode;
     }
 }

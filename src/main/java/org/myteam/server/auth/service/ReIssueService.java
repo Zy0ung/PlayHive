@@ -122,7 +122,7 @@ public class ReIssueService {
             throw e;
         } catch (Exception e) {
             // 기타 예외는 PlayHiveException으로 래핑
-            throw new PlayHiveException(e.getMessage());
+            throw new PlayHiveException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 

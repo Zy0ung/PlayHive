@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import static org.myteam.server.global.exception.ErrorCode.RESOURCE_NOT_FOUND;
+
 @Repository
 @RequiredArgsConstructor
 public class CategoryRepositoryImpl implements CategoryRepository {
@@ -49,7 +51,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     @Override
     public Category getByParentIdAndOrderIndex(Long parentId, int orderIndex) {
         return categoryJpaRepository.findByParentIdAndOrderIndex(parentId, orderIndex)
-                .orElseThrow(() -> new PlayHiveException("parentId -> " + parentId + ", orderIndex -> " + orderIndex + " 는 존재하지 않는 카테고리 입니다"));
+                .orElseThrow(() -> new PlayHiveException(RESOURCE_NOT_FOUND, "parentId -> " + parentId + ", orderIndex -> " + orderIndex + " 는 존재하지 않는 카테고리 입니다"));
     }
 
     @Override
@@ -60,6 +62,6 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     @Override
     public Category getById(long id) {
         return categoryJpaRepository.findById(id)
-                .orElseThrow(() -> new PlayHiveException("id -> " + id + " 는 존재하지 않는 카테고리 입니다"));
+                .orElseThrow(() -> new PlayHiveException(RESOURCE_NOT_FOUND, "id -> " + id + " 는 존재하지 않는 카테고리 입니다"));
     }
 }
