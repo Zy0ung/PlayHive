@@ -29,6 +29,7 @@ import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
+import static org.myteam.server.member.domain.MemberStatus.*;
 import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
@@ -76,9 +77,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             String username = customUserDetails.getUsername();
             UUID publicId = customUserDetails.getPublicId();
+            String status = customUserDetails.getStatus();
 
             log.info("successfulAuthentication > username : {}", username);
             log.info("successfulAuthentication > publicId : {}", publicId);
+            log.info("successfulAuthentication > status : {}", status);
+
+            if (status.equals(PENDING.name())) {
+                log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
+                sendErrorResponse(response, HttpStatus.FORBIDDEN, "PENDING 상태인 경우 로그인이 불가능합니다");
+                return;
+            } else if (status.equals(INACTIVE.name())) {
+                log.warn("INACTIVE 상태인 경우 로그인이 불가능합니다");
+                sendErrorResponse(response, HttpStatus.FORBIDDEN, "INACTIVE 상태인 경우 로그인이 불가능합니다");
+                return;
+            } else if (!status.equals(ACTIVE.name())) {
+                log.warn("알 수 없는 유저 상태 코드 : " + status);
+                sendErrorResponse(response, HttpStatus.FORBIDDEN, "알 수 없는 유저 상태 코드 : " + status);
+                return;
+            }
 
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -88,9 +105,9 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             String role = auth.getAuthority();
 
             // Authorization
-            String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role);
+            String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role, status);
             // X-Refresh-Token
-            String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role);
+            String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role, status);
             // URLEncoder.encode: 공백을 %2B 로 처리
             String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
@@ -135,5 +152,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .build();
 
         refreshJpaRepository.save(refreshEntity);
+    }
+
+    /**
+     * 공통 에러 응답 처리 메서드
+     *
+     * @param response HttpServletResponse
+     * @param httpStatus HTTP 상태 오브젝트
+     * @param message 메시지
+     * @throws IOException
+     */
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus httpStatus, String message) throws IOException {
+        response.setStatus(httpStatus.value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":\"%s\"}", message, httpStatus.name()));
     }
 }

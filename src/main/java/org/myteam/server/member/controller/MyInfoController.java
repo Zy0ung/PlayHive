@@ -48,9 +48,9 @@ public class MyInfoController {
         MemberResponse response = memberService.create(memberSaveRequest);
 
         // Authorization
-        String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), response.getPublicId(), response.getRole().name());
+        String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         // X-Refresh-Token
-        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), response.getPublicId(), response.getRole().name());
+        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         // URLEncoder.encode: 공백을 %2B 로 처리
         String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 

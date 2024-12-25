@@ -7,7 +7,6 @@ import org.myteam.server.global.security.util.PasswordUtil;
 import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberJpaRepository;
-import org.myteam.server.oauth2.constant.OAuth2ServiceProvider;
 import org.myteam.server.oauth2.dto.CustomOAuth2User;
 import org.myteam.server.oauth2.response.*;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -87,11 +86,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             log.debug("name : {}", oAuth2Response.getName());
             log.debug("provider : {}", oAuth2Response.getProvider());
             log.debug("provider.name : {}", MemberType.fromOAuth2Provider(oAuth2Response.getProvider()).name());
+            log.debug("provider.status : {}", member.getStatus().name());
 
             member.updateEmail(oAuth2Response.getEmail());
 
-            return new CustomOAuth2User(member.getEmail(), member.getRole().name(), member.getPublicId());
+            return new CustomOAuth2User(member.getEmail(), member.getRole().name(), member.getPublicId(), member.getStatus());
         } else {
+            // 로컬 이메일 계정으로 존재하는 유저
             throw new PlayHiveException(ErrorCode.USER_ALREADY_EXISTS);
         }
     }
@@ -115,7 +116,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .build();
 
         memberJpaRepository.save(newMember);
-        return new CustomOAuth2User(oAuth2Response.getEmail(), USER.name(), publicId);
+        return new CustomOAuth2User(oAuth2Response.getEmail(), USER.name(), publicId, newMember.getStatus());
     }
 
     /**

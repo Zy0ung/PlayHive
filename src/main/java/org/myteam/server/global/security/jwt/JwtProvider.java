@@ -34,9 +34,9 @@ public class JwtProvider {
      * @param role     String
      * @return String
      */
-    public String generateToken(String category, Duration duration, UUID publicId, String role) {
+    public String generateToken(String category, Duration duration, UUID publicId, String role, String status) {
         Date now = new Date();
-        return makeToken(category, new Date(now.getTime() + duration.toMillis()), publicId, role);
+        return makeToken(category, new Date(now.getTime() + duration.toMillis()), publicId, role, status);
     }
 
     /**
@@ -47,7 +47,7 @@ public class JwtProvider {
      * @param role 권한
      * @return
      */
-    private String makeToken(String category, Date expirationDate, UUID publicId, String role) {
+    private String makeToken(String category, Date expirationDate, UUID publicId, String role, String status) {
         return Jwts.builder()
                 .issuer(jwtProperties.getIssuer())
                 .issuedAt(new Date())
@@ -55,6 +55,7 @@ public class JwtProvider {
                 .claim("category", category)
                 .claim("id", publicId)
                 .claim("role", role)
+                .claim("status", status)
                 .signWith(getSigningKey())
                 .compact();
     }
@@ -109,6 +110,17 @@ public class JwtProvider {
     public String getRole(final String token) {
         Claims claims = getClaims(token);
         return claims.get("role", String.class);
+    }
+
+    /**
+     * 토큰으로부터 사용자 상태(status)을 추출
+     *
+     * @param token String
+     * @return String
+     */
+    public String getStatus(final String token) {
+        Claims claims = getClaims(token);
+        return claims.get("status", String.class);
     }
 
     /**
