@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.myteam.server.global.exception.ErrorCode.INTERNAL_SERVER_ERROR;
+
 
 @Slf4j
 @Component
@@ -65,7 +67,8 @@ public class CertifyMailSender implements MailSender {
             String body = buildEmailContent(code, codeStorage.get(email).getExpirationTime());
             message.setText(body, "UTF-8", "html");
         } catch (MessagingException e) {
-            throw new PlayHiveException(e.getMessage());
+            log.error("이메일 생성 중 에러가 발생하였습니다. 에러 메시지 : {}", e.getMessage());
+            throw new PlayHiveException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
 
         return message;

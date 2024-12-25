@@ -22,7 +22,7 @@ import java.util.UUID;
 import static org.myteam.server.global.exception.ErrorCode.*;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
-import static org.myteam.server.util.CookieUtil.getCookie;
+import static org.myteam.server.util.cookie.CookieUtil.getCookie;
 
 @Slf4j
 @Service
@@ -122,7 +122,7 @@ public class ReIssueService {
             throw e;
         } catch (Exception e) {
             // 기타 예외는 PlayHiveException으로 래핑
-            throw new PlayHiveException(e.getMessage());
+            throw new PlayHiveException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 

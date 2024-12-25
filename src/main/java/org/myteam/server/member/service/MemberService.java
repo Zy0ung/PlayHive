@@ -2,6 +2,7 @@ package org.myteam.server.member.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberStatus;
@@ -21,8 +22,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.myteam.server.global.exception.ErrorCode.NO_PERMISSION;
-import static org.myteam.server.global.exception.ErrorCode.USER_ALREADY_EXISTS;
+import static org.myteam.server.global.exception.ErrorCode.*;
 
 @Slf4j
 @Service
@@ -61,7 +61,7 @@ public class MemberService {
 
         // 2. 아이디 미존재 체크
         if (memberOP.isEmpty()) {
-            throw new PlayHiveException("아이디가 존재하지 않습니다.");
+            throw new PlayHiveException(ErrorCode.USER_NOT_FOUND);
         }
 
         // 3. 자신의 계정이 아닌 다른 계정을 수정하려고 함
@@ -78,7 +78,7 @@ public class MemberService {
     }
 
     public MemberResponse getByPublicId(UUID publicId) {
-        return new MemberResponse(memberRepository.getByByPublicId(publicId));
+        return new MemberResponse(memberRepository.getByPublicId(publicId));
     }
 
     // 엔티티 반환 get~
@@ -96,13 +96,13 @@ public class MemberService {
     public MemberResponse getByEmail(String email) {
         return memberRepository.findByEmail(email)
                 .map(MemberResponse::new)
-                .orElseThrow(() -> new PlayHiveException(email + " 는 존재하지 않는 이메일 입니다"));
+                .orElseThrow(() -> new PlayHiveException(RESOURCE_NOT_FOUND, email + " 는 존재하지 않는 이메일 입니다"));
     }
 
     public MemberResponse getByNickname(String nickname) {
         return memberRepository.findByNickname(nickname)
                 .map(MemberResponse::new)
-                .orElseThrow(() -> new PlayHiveException(nickname + " 는 존재하지 않는 닉네임 입니다"));
+                .orElseThrow(() -> new PlayHiveException(RESOURCE_NOT_FOUND, nickname + " 는 존재하지 않는 닉네임 입니다"));
     }
 
     @Transactional
@@ -115,7 +115,7 @@ public class MemberService {
 
         // 비밀번호 일치 여부 확인
         boolean isPWValid = findMember.validatePassword(password, passwordEncoder);
-        if (!isPWValid) throw new PlayHiveException("비밀번호가 일치하지 않습니다.");
+        if (!isPWValid) throw new PlayHiveException(NO_PERMISSION);
 
         memberJpaRepository.delete(findMember);
     }
@@ -134,9 +134,9 @@ public class MemberService {
     public void changePassword(String email, PasswordChangeRequest passwordChangeRequest) {
         Member findMember = memberRepository.getByEmail(email);
         boolean isEqual = passwordChangeRequest.checkPasswordAndConfirmPassword();
-        if (!isEqual) throw new PlayHiveException("새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
+        if (!isEqual) throw new PlayHiveException(INVALID_PARAMETER, "새 비밀번호와 확인 비밀번호가 일치하지 않습니다.");
         boolean isValid = findMember.validatePassword(passwordChangeRequest.getPassword(), passwordEncoder);
-        if (!isValid) throw new PlayHiveException("현재 비밀번호가 일치하지 않습니다.");
+        if (!isValid) throw new PlayHiveException(UNAUTHORIZED, "현재 비밀번호가 일치하지 않습니다.");
 
         findMember.updatePassword(passwordChangeRequest, passwordEncoder); // 비밀번호 변경
     }

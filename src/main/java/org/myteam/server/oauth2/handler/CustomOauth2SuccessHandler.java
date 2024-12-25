@@ -24,7 +24,7 @@ import java.util.Iterator;
 import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.*;
-import static org.myteam.server.util.CookieUtil.createCookie;
+import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 @Component

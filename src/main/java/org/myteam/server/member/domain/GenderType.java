@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.myteam.server.global.exception.PlayHiveException;
 
+import static org.myteam.server.global.exception.ErrorCode.INVALID_PARAMETER;
+
 @AllArgsConstructor
 @Getter
 public enum GenderType {
@@ -16,6 +18,6 @@ public enum GenderType {
                 return gender;
             }
         }
-        throw new PlayHiveException("Invalid gender value: " + value);
+        throw new PlayHiveException(INVALID_PARAMETER, "Invalid gender value: " + value);
     }
 }

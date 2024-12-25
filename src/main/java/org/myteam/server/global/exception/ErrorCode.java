@@ -31,9 +31,11 @@ public enum ErrorCode {
 
     // 404 Not Found
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
 
     // 409 Conflict,
-    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "User already exists");
+    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "User already exists"),
+    RESOURCE_CONFLICT(HttpStatus.CONFLICT, "Resource is in a state that prevents this operation");
 
     private final HttpStatus status;
     private final String msg;

@@ -8,13 +8,15 @@ import org.myteam.server.auth.service.ReIssueService;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import static org.myteam.server.util.CookieUtil.createCookie;
+import static org.myteam.server.global.exception.ErrorCode.INTERNAL_SERVER_ERROR;
+import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 /**
  * TODO_ : 리프레시 토큰에 대한 블랙 리스트 작성
@@ -70,7 +72,7 @@ public class ReIssueController {
         } catch (Exception e) {
             // 일반 예외는 PlayHiveException 으로 에러를 던짐
             log.error("Unexpected error during token reissue :" + e.getMessage());
-            throw new PlayHiveException(e.getMessage());
+            throw new PlayHiveException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 }

@@ -1,4 +1,4 @@
-package org.myteam.server.util;
+package org.myteam.server.util.cookie;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
