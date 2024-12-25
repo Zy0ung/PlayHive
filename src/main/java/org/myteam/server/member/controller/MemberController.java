@@ -66,11 +66,9 @@ public class MemberController {
         log.info("email : {}" , response.getEmail());
 
         // 서비스 호출
-        MemberStatus memberStatus = memberStatusUpdateRequest.getStatus(); // 변경 상태
         String targetEmail = response.getEmail(); // 상태를 변경할 대상 이메일
-        String extractedEmail = memberStatusUpdateRequest.getEmail(); // 토큰에서 추출된 이메일
 
-        memberService.updateStatus(extractedEmail, targetEmail, memberStatus);
+        memberService.updateStatus(targetEmail, memberStatusUpdateRequest);
 
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "회원 상태가 성공적으로 변경되었습니다.", null));
     }

@@ -5,12 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
+import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberStatus;
-import org.myteam.server.member.dto.MemberSaveRequest;
+import org.myteam.server.member.dto.*;
 import org.myteam.server.member.controller.response.MemberResponse;
-import org.myteam.server.member.dto.MemberRoleUpdateRequest;
-import org.myteam.server.member.dto.MemberUpdateRequest;
-import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberJpaRepository;
 import org.myteam.server.member.repository.MemberRepository;
@@ -169,18 +167,21 @@ public class MemberService {
     }
 
     @Transactional
-    public void updateStatus(String extractedEmail, String targetEmail, MemberStatus memberStatus) {
-        log.info("토큰에서 추출된 이메일: {}, 상태를 변경할 대상 이메일: {}, 새로운 상태: {}", extractedEmail, targetEmail, memberStatus);
+    public void updateStatus(String targetEmail, MemberStatusUpdateRequest memberStatusUpdateRequest) {
+        log.info("토큰에서 추출된 이메일: {}, 상태를 변경할 대상 이메일: {}, 새로운 상태: {}", targetEmail, memberStatusUpdateRequest.getStatus().name());
 
         Member member = memberRepository.getByEmail(targetEmail);
 
         // 자신의 계정이 아닌 다른 계정을 수정하려고 함
-        if (!member.verifyOwnEmail(extractedEmail)) {
-            throw new PlayHiveException(NO_PERMISSION);
+        if (!member.verifyOwnEmail(memberStatusUpdateRequest.getEmail())) {
+            if (!member.getRole().equals(MemberRole.ADMIN)) { // 관리자가 상태를 업데이트 하려고 하는 것일 수도 있는 상황
+                // 빈 Response 객체 반환
+                throw new PlayHiveException(NO_PERMISSION, "상태 수정 권한이 없습니다.");
+            }
         }
 
         // 상태 업데이트
-        member.updateStatus(memberStatus);
+        member.updateStatus(memberStatusUpdateRequest.getStatus());
     }
 
     public boolean existsByEmail(String email) {

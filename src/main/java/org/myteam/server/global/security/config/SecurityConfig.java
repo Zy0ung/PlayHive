@@ -114,12 +114,12 @@ public class SecurityConfig {
         http
             .authorizeHttpRequests(authorizeRequests ->
                     authorizeRequests
-                            .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
                             .requestMatchers(TOKEN_REISSUE_PATH).permitAll()          // 토큰 재발급
-                            .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
+                            .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
                             .requestMatchers("/api/members/role").permitAll()       // 유저 권한 변경 허용
                             .requestMatchers("/api/members/get-token/{email}").permitAll()       // 테스트용 토큰 발급용
-                            .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
+                            .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
+                            .anyRequest().permitAll()                   // 나머지 요청은 모두 허용
             );
 
         http
