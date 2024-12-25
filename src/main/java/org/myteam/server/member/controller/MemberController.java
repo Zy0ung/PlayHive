@@ -86,7 +86,7 @@ public class MemberController {
     public ResponseEntity<?> getToken(@PathVariable String email) {
         log.info("getToken 메서드가 실행되었습니다.");
         MemberResponse response = memberService.getByEmail(email);
-        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(6), response.getPublicId(), MemberRole.USER.name());
+        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(6), response.getPublicId(), MemberRole.USER.name(), response.getStatus().name());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "토큰 조회 성공", encode), HttpStatus.OK);
     }
 }

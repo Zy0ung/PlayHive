@@ -100,6 +100,7 @@ public class ReIssueService {
             // Refresh Token 검증
             UUID publicId = jwtProvider.getPublicId(refresh);
             String role = jwtProvider.getRole(refresh);
+            String status = jwtProvider.getStatus(refresh);
 
             log.info("publicId: {}, role: {}", publicId, role);
 
@@ -107,9 +108,9 @@ public class ReIssueService {
 
             // 새로운 Access 및 Refresh 토큰 생성
             // Authorization
-            String newAccess = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role);
+            String newAccess = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role, status);
             // X-Refresh-Token
-            String newRefresh = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role);
+            String newRefresh = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role, status);
 
             // 기존 리프레시 토큰 삭제
             deleteByRefreshAndPublicId(refresh, publicId);

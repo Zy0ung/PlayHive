@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberRole;
+import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.entity.Member;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,14 +54,17 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 // 토큰에서 username과 role 획득
                 UUID publicId = jwtProvider.getPublicId(accessToken);
                 String role = jwtProvider.getRole(accessToken);
+                String status = jwtProvider.getStatus(accessToken);
 
                 log.info("publicId : " + publicId);
                 log.info("role : " + role);
+                log.info("status : " + status);
 
                 // Member 를 생성하여 값 set
                 Member member = Member.builder()
                         .publicId(publicId)
                         .role(MemberRole.valueOf(role))
+                        .status(MemberStatus.valueOf(status))
                         .build();
 
                 CustomUserDetails customUserDetails = new CustomUserDetails(member);
