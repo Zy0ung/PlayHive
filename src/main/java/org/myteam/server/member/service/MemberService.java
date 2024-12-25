@@ -8,6 +8,7 @@ import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.MemberSaveRequest;
 import org.myteam.server.member.controller.response.MemberResponse;
+import org.myteam.server.member.dto.MemberRoleUpdateRequest;
 import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.entity.Member;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.myteam.server.global.domain.PlayHiveValidator.validate;
 import static org.myteam.server.global.exception.ErrorCode.*;
 
 @Slf4j
@@ -124,6 +126,31 @@ public class MemberService {
     public void delete(String email) {
         Member findMember = memberRepository.getByEmail(email);
         memberJpaRepository.delete(findMember);
+    }
+
+    @Transactional
+    public MemberResponse updateRole(MemberRoleUpdateRequest memberRoleUpdateRequest) {
+        boolean isValid = validate(memberRoleUpdateRequest);
+        log.info("playHive updateRole isValid: {}", isValid);
+
+        if (!isValid) {
+              // 빈 Response 객체 반환
+            throw new PlayHiveException(NO_PERMISSION, "인증 키와 패스워드가 일치하지 않습니다");
+        }
+
+        // 1. 동일한 유저 이름 존재 검사
+        Optional<Member> memberOP = memberRepository.findByEmail(memberRoleUpdateRequest.getEmail());
+
+        // 2. 아이디 미존재 체크
+        if (memberOP.isEmpty()) {
+            throw new PlayHiveException(ErrorCode.USER_NOT_FOUND);
+        }
+
+        Member member = memberOP.get();
+        member.updateType(memberRoleUpdateRequest.getRole());
+
+        // 5. dto 응답
+        return new MemberResponse(member);
     }
 
     public List<Member> list() {

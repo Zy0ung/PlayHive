@@ -45,6 +45,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
                 if (!accessCategory.equals(TOKEN_CATEGORY_ACCESS)) {
                     // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                    log.warn("잘못된 토큰 유형입니다.");
                     sendErrorResponse(response, INVALID_TOKEN_TYPE.getStatus(), "잘못된 토큰 유형");
                     return;
                 }
@@ -71,16 +72,18 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 try {
                     if (jwtProvider.isExpired(accessToken)) {
                         // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                        log.warn("토큰이 만료되었습니다.");
                         sendErrorResponse(response, ACCESS_TOKEN_EXPIRED.getStatus(), "만료된 토큰");
                         return;
                     }
                 } catch (JwtException | IllegalArgumentException e) {
                     // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
-                    log.debug("잘못된 JWT 토큰 형식 또는 그 외 에러 : {}", e.getMessage());
+                    log.error("잘못된 JWT 토큰 형식 또는 그 외 에러 : {}", e.getMessage());
                     sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus(), "잘못된 JWT 토큰 형식 또는 그 외 에러");
                     return;
                 }
                 // RestControllerAdvice 로 에러가 전달 되지 않아 여기서 에러 처리함
+                log.warn("인증되지 않은 토큰입니다.");
                 sendErrorResponse(response, INVALID_ACCESS_TOKEN.getStatus(), "인증되지 않은 토큰");
                 return;
             }

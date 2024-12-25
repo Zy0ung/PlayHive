@@ -118,6 +118,10 @@ public class Member {
         this.status = memberStatus;
     }
 
+    public void updateType(MemberRole role) {
+        this.role = role;
+    }
+
     public boolean verifyOwnEmail(String email) {
         return email.equals(this.email);
     }

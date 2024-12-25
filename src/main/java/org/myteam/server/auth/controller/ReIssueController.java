@@ -8,7 +8,6 @@ import org.myteam.server.auth.service.ReIssueService;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -16,6 +15,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import static org.myteam.server.global.exception.ErrorCode.INTERNAL_SERVER_ERROR;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_PREFIX;
 import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 /**
@@ -27,7 +27,6 @@ public class ReIssueController {
     private final ReIssueService reIssueService;
     private static final String ACCESS_TOKEN_KEY = "Authorization";
     private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
-    public final static String TOKEN_PREFIX = "Bearer ";
     public final static String TOKEN_REISSUE_PATH = "/reissue";
     public final static String LOGOUT_PATH = "/logout";
 

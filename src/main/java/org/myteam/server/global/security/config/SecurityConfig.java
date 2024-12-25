@@ -97,10 +97,13 @@ public class SecurityConfig {
             );
 
         http
-            .addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
-            .addFilterAt(
-                    new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
-                    UsernamePasswordAuthenticationFilter.class
+            .addFilterBefore(
+                        new TokenAuthenticationFilter(jwtProvider),
+                        JwtAuthenticationFilter.class
+            )
+            .addFilterAfter(
+                        new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
+                        TokenAuthenticationFilter.class
             ); // 회원 로그인 필터
 
         // cors 설정
@@ -113,8 +116,9 @@ public class SecurityConfig {
                     authorizeRequests
                             .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
                             .requestMatchers(TOKEN_REISSUE_PATH).permitAll()          // 토큰 재발급
-                            .requestMatchers("/test/**").authenticated()      // /test/** 경로는 인증 필요
                             .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
+                            .requestMatchers("/api/members/role").permitAll()       // 유저 권한 변경 허용
+                            .requestMatchers("/api/members/get-token/{email}").permitAll()       // 테스트용 토큰 발급용
                             .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
             );
 
