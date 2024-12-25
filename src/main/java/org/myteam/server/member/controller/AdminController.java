@@ -23,7 +23,7 @@ import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 @RestController
 @RequestMapping("/api/admin/members")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole(T(org.myteam.server.member.domain.MemberRole).ADMIN.name())")
+@PreAuthorize("hasAuthority(T(org.myteam.server.member.domain.MemberRole).ADMIN.name())")
 public class AdminController {
     private final MemberService memberService;
 

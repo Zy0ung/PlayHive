@@ -41,7 +41,7 @@ public class MemberRepositoryImpl implements MemberRepository {
     }
 
     @Override
-    public Member getByByPublicId(UUID publicId) {
+    public Member getByPublicId(UUID publicId) {
         return memberJpaRepository.findByPublicId(publicId)
                 .orElseThrow(() -> new PlayHiveException(publicId + " 는 존재하지 않는 PublicId 입니다"));
     }

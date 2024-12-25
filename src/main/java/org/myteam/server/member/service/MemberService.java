@@ -79,7 +79,7 @@ public class MemberService {
     }
 
     public MemberResponse getByPublicId(UUID publicId) {
-        return new MemberResponse(memberRepository.getByByPublicId(publicId));
+        return new MemberResponse(memberRepository.getByPublicId(publicId));
     }
 
     // 엔티티 반환 get~
