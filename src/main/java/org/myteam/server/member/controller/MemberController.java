@@ -5,17 +5,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.web.response.ResponseDto;
+import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.ExistMemberRequest;
 import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.dto.MemberStatusUpdateRequest;
+import org.myteam.server.member.dto.MemberRoleUpdateRequest;
 import org.myteam.server.member.service.MemberService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import static org.myteam.server.global.security.jwt.JwtProvider.HEADER_AUTHORIZATION;
+import java.time.Duration;
+
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 
 @Slf4j
@@ -24,6 +30,7 @@ import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 @RequiredArgsConstructor
 public class MemberController {
     private final MemberService memberService;
+    private final JwtProvider jwtProvider;
 
     /**
      * 이메일로 사용자 존재 여부 확인
@@ -66,5 +73,20 @@ public class MemberController {
         memberService.updateStatus(extractedEmail, targetEmail, memberStatus);
 
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "회원 상태가 성공적으로 변경되었습니다.", null));
+    }
+
+    @PutMapping("/role")
+    public ResponseEntity<?> updateRole(@RequestBody @Valid MemberRoleUpdateRequest memberRoleUpdateRequest) {
+        log.info("MemberController updateRole 메서드 실행. memberTypeUpdateRequest : {}", memberRoleUpdateRequest);
+        MemberResponse response = memberService.updateRole(memberRoleUpdateRequest);
+        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "권한 변경 성공", response), HttpStatus.OK);
+    }
+
+    @GetMapping("/get-token/{email}")
+    public ResponseEntity<?> getToken(@PathVariable String email) {
+        log.info("getToken 메서드가 실행되었습니다.");
+        MemberResponse response = memberService.getByEmail(email);
+        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(6), response.getPublicId(), MemberRole.USER.name());
+        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "토큰 조회 성공", encode), HttpStatus.OK);
     }
 }

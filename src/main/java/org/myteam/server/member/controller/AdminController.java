@@ -52,7 +52,7 @@ public class AdminController {
     @Deprecated
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@RequestBody MemberDeleteRequest memberDeleteRequest, BindingResult bindingResult) {
-        log.info("MemberController delete( 메서드 실행 : {}", memberDeleteRequest);
+        log.info("MemberController delete 메서드 실행 : {}", memberDeleteRequest);
         String email = memberDeleteRequest.getEmail();
         memberService.delete(email);
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 삭제 성공", null), HttpStatus.OK);

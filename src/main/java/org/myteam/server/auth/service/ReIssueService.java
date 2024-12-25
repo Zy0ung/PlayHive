@@ -119,9 +119,11 @@ public class ReIssueService {
             return new Tokens(newAccess, newRefresh);
         } catch (PlayHiveException e) {
             // PlayHiveException은 그대로 던짐
+            log.error("PlayHiveException 은 그대로 던짐 : {}", e.getMessage());
             throw e;
         } catch (Exception e) {
             // 기타 예외는 PlayHiveException으로 래핑
+            log.error("기타 예외는 PlayHiveException 으로 래핑 : {}", e.getMessage());
             throw new PlayHiveException(INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }

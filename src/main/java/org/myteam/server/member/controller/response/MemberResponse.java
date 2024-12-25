@@ -37,6 +37,9 @@ public class MemberResponse {
     @JsonIgnore
     private UUID publicId;
 
+    public MemberResponse() {
+    }
+
     @Builder
     public MemberResponse(final Member member) {
         this.id = member.getId();
