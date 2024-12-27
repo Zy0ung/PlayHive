@@ -48,10 +48,10 @@ public class MyInfoController {
         // X-Refresh-Token
         String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         // URLEncoder.encode: 공백을 %2B 로 처리
-        String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+        String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
 
         // 응답 헤더 설정
-        httpServletResponse.addHeader(HEADER_AUTHORIZATION, "Bearer " + accessToken);
+        httpServletResponse.addHeader(HEADER_AUTHORIZATION, TOKEN_PREFIX + accessToken);
         httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
         httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원가입 성공", response), HttpStatus.CREATED);

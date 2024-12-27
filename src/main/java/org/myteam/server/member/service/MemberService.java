@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import static org.myteam.server.global.domain.PlayHiveValidator.validate;
 import static org.myteam.server.global.exception.ErrorCode.*;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_PREFIX;
 
 @Slf4j
 @Service
@@ -220,7 +221,7 @@ public class MemberService {
      * @return
      */
     public MemberResponse getAuthenticatedMember(String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith(TOKEN_PREFIX)) {
             throw new PlayHiveException(NO_PERMISSION);
         }
 
