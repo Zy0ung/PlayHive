@@ -27,15 +27,12 @@ import java.util.*;
 
 import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.member.domain.MemberStatus.*;
 import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private static final String ACCESS_TOKEN_KEY = "Authorization";
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
     private final RefreshJpaRepository refreshJpaRepository;
@@ -123,7 +120,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             //Refresh 토큰 저장
             addRefreshEntity(publicId, refreshToken, Duration.ofHours(24));
 
-            response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
+            response.addHeader(HEADER_AUTHORIZATION, "Bearer " + accessToken);
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
             response.setStatus(HttpStatus.OK.value());

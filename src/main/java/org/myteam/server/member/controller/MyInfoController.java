@@ -23,8 +23,7 @@ import java.util.UUID;
 
 import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
@@ -35,9 +34,6 @@ import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 public class MyInfoController {
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
-
-    private static final String ACCESS_TOKEN_KEY = "Authorization";
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody @Valid MemberSaveRequest memberSaveRequest,
@@ -55,7 +51,7 @@ public class MyInfoController {
         String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
 
         // 응답 헤더 설정
-        httpServletResponse.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
+        httpServletResponse.addHeader(HEADER_AUTHORIZATION, "Bearer " + accessToken);
         httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
         httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원가입 성공", response), HttpStatus.CREATED);

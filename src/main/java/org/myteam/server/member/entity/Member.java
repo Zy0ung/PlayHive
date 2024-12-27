@@ -7,6 +7,7 @@ import java.util.UUID;
 
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.global.domain.Base;
 import org.myteam.server.member.domain.GenderType;
 import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberStatus;
@@ -26,7 +27,7 @@ import static org.myteam.server.member.domain.MemberType.LOCAL;
 @Getter
 @Table(name = "p_members")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Member {
+public class Member extends Base {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

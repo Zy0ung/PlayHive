@@ -15,7 +15,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
 import static org.myteam.server.global.exception.ErrorCode.INTERNAL_SERVER_ERROR;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_PREFIX;
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 /**
@@ -25,8 +25,6 @@ import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 @RestController
 public class ReIssueController {
     private final ReIssueService reIssueService;
-    private static final String ACCESS_TOKEN_KEY = "Authorization";
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     public final static String TOKEN_REISSUE_PATH = "/reissue";
     public final static String LOGOUT_PATH = "/logout";
 
@@ -44,7 +42,7 @@ public class ReIssueController {
             Tokens tokens = reIssueService.reissueTokens(request);
 
             // Access Token 응답 헤더 추가
-            response.addHeader(ACCESS_TOKEN_KEY, TOKEN_PREFIX + tokens.getAccessToken());
+            response.addHeader(HEADER_AUTHORIZATION, TOKEN_PREFIX + tokens.getAccessToken());
 
             // Refresh Token 쿠키 추가
             response.addCookie(createCookie(

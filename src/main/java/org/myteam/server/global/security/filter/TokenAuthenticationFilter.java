@@ -22,13 +22,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import static org.myteam.server.global.exception.ErrorCode.*;
+import static org.myteam.server.global.security.jwt.JwtProvider.HEADER_AUTHORIZATION;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
 
 @Slf4j
 @RequiredArgsConstructor
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
-    private final static String HEADER_AUTHORIZATION = "Authorization";
     private final JwtProvider jwtProvider;
 
     @Override

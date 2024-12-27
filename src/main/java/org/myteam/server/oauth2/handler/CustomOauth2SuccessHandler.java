@@ -32,8 +32,6 @@ import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     @Value("${FRONT_URL:http://localhost:3000}")
     private String frontUrl;
-    private static final String ACCESS_TOKEN_KEY = "Authorization";
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final JwtProvider jwtProvider;
     private final MemberJpaRepository memberJpaRepository;
 
