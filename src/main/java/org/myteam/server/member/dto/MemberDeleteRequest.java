@@ -14,6 +14,6 @@ public class MemberDeleteRequest {
 
     @NotBlank
     // @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,15}$", message = "비밀번호는 영문+숫자 조합 4 ~ 10자 이내로 입력해주세요")
-    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9]).{8,15}$", message = "비밀번호는 영문, 숫자 조합 4 ~ 10자 이내로 입력해주세요")
+    @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[0-9]).{4,15}$", message = "비밀번호는 영문, 숫자 조합 4 ~ 15자 이내로 입력해주세요")
     private String password; // 비밀번호
 }

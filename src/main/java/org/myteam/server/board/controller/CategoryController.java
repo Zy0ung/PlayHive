@@ -23,7 +23,6 @@ public class CategoryController {
 
     // CREATE: 카테고리 생성
     @PostMapping
-    @PreAuthorize("hasAuthority(T(org.myteam.server.member.domain.MemberRole).ADMIN.name())")
     public ResponseEntity<ResponseDto<CategoryResponse>> createCategory(@Valid @RequestBody CategorySaveRequest categorySaveRequest) {
         CategoryResponse response = categoryService.create(categorySaveRequest);
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "카테고리 생성 성공", response));
@@ -31,7 +30,6 @@ public class CategoryController {
 
     // UPDATE: 카테고리 수정
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(T(org.myteam.server.member.domain.MemberRole).ADMIN.name())")
     public ResponseEntity<ResponseDto<CategoryResponse>> updateCategory(@PathVariable Long id,
                                                                         @Valid @RequestBody CategoryUpdateRequest categoryUpdateRequest) {
         CategoryResponse response = categoryService.update(id, categoryUpdateRequest);
@@ -40,7 +38,6 @@ public class CategoryController {
 
     // DELETE: 카테고리 삭제
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(T(org.myteam.server.member.domain.MemberRole).ADMIN.name())")
     public ResponseEntity<ResponseDto<Void>> deleteCategory(@PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "카테고리 삭제 성공", null));
