@@ -30,7 +30,7 @@ public class MemberUpdateRequest {
     @Column(name = "birth_date")
     private LocalDate birthdate;
 
-    @Pattern(regexp = "^(MALE|FEMALE)$", message = "성별은 MALE, FEMALE 중 하나여야 합니다.")
+    @Pattern(regexp = "^(?i)(MALE|FEMALE)$", message = "성별은 MALE, FEMALE 중 하나여야 합니다.")
     private String gender;
 
     private MemberStatus status;

@@ -17,6 +17,7 @@ import org.myteam.server.oauth2.service.CustomOAuth2UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -97,14 +98,14 @@ public class SecurityConfig {
             );
 
         http
-            .addFilterBefore(
+            .addFilterAt(
+                    new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
+                    UsernamePasswordAuthenticationFilter.class
+            ) // 로그인 인증 필터
+            .addFilterAfter(
                         new TokenAuthenticationFilter(jwtProvider),
                         JwtAuthenticationFilter.class
-            )
-            .addFilterAfter(
-                        new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
-                        TokenAuthenticationFilter.class
-            ); // 회원 로그인 필터
+            ); // JWT 토큰 검증 필터
 
         // cors 설정
         http
@@ -113,13 +114,24 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http
             .authorizeHttpRequests(authorizeRequests ->
-                    authorizeRequests
-                            .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
-                            .requestMatchers(TOKEN_REISSUE_PATH).permitAll()          // 토큰 재발급
-                            .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
-                            .requestMatchers("/api/members/role").permitAll()       // 유저 권한 변경 허용
-                            .requestMatchers("/api/members/get-token/{email}").permitAll()       // 테스트용 토큰 발급용
-                            .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
+                authorizeRequests
+                    .requestMatchers("/upload/**").permitAll()       // 정적 자원 접근 허용
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
+
+                    .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
+                    .requestMatchers("/api/members/get-token/**").permitAll()       // 테스트용 토큰 발급용
+
+                    .requestMatchers("/api/admin/**").hasAnyAuthority(MemberRole.ADMIN.name())
+                    .requestMatchers(HttpMethod.POST, "/api/me/create").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/api/categories/**").hasAnyAuthority(MemberRole.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasAnyAuthority(MemberRole.ADMIN.name())
+                    .requestMatchers(HttpMethod.POST, "/api/categories").hasAnyAuthority(MemberRole.ADMIN.name())
+
+                    .requestMatchers(TOKEN_REISSUE_PATH).permitAll()          // 토큰 재발급
+                    .requestMatchers("/api/members/role").permitAll()       // 유저 권한 변경 허용
+
+                    .anyRequest().authenticated()                   // 나머지 요청은 모두 허용
             );
 
         http

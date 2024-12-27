@@ -54,9 +54,26 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         String role = auth.getAuthority();
         String status = customUserDetails.getStatus().name();
 
+        log.info("onAuthenticationSuccess email: {}", email);
+        log.info("onAuthenticationSuccess role: {}", role);
+        //유저확인
+        Member member = memberJpaRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Member not found"));
+        log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
+        log.info("onAuthenticationSuccess role: {}", member.getRole());
+
+
         if (status.equals(PENDING.name())) {
             log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
             // sendErrorResponse(response, HttpStatus.FORBIDDEN, "PENDING 상태인 경우 로그인이 불가능합니다");
+            // X-Refresh-Token
+            String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(7), member.getPublicId(), member.getRole().name(), member.getStatus().name());
+            String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+
+            // redirect 순간 Header 값 날아감
+            // response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
             response.sendRedirect(frontUrl + "?status=" + status);
             return;
         } else if (status.equals(INACTIVE.name())) {
@@ -71,13 +88,6 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
             return;
         }
 
-        log.info("onAuthenticationSuccess email: {}", email);
-        log.info("onAuthenticationSuccess role: {}", role);
-        //유저확인
-        Member member = memberJpaRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
-        log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
-        log.info("onAuthenticationSuccess role: {}", member.getRole());
         // Authorization
         String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(1), member.getPublicId(), member.getRole().name(), member.getStatus().name());
         // X-Refresh-Token

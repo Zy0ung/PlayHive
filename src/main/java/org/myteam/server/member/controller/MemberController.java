@@ -66,11 +66,9 @@ public class MemberController {
         log.info("email : {}" , response.getEmail());
 
         // 서비스 호출
-        MemberStatus memberStatus = memberStatusUpdateRequest.getStatus(); // 변경 상태
-        String targetEmail = response.getEmail(); // 상태를 변경할 대상 이메일
-        String extractedEmail = memberStatusUpdateRequest.getEmail(); // 토큰에서 추출된 이메일
+        String targetEmail = response.getEmail(); // 변경을 시도하는 유저의 이메일 (본인 또는 관리자)
 
-        memberService.updateStatus(extractedEmail, targetEmail, memberStatus);
+        memberService.updateStatus(targetEmail, memberStatusUpdateRequest);
 
         return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "회원 상태가 성공적으로 변경되었습니다.", null));
     }
@@ -82,11 +80,19 @@ public class MemberController {
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "권한 변경 성공", response), HttpStatus.OK);
     }
 
-    @GetMapping("/get-token/{email}")
+    @GetMapping("/get-token/admin/{email}")
+    public ResponseEntity<?> getAdminToken(@PathVariable String email) {
+        log.info("getToken 메서드가 실행되었습니다.");
+        MemberResponse response = memberService.getByEmail(email);
+        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(10), response.getPublicId(), MemberRole.ADMIN.name(), response.getStatus().name());
+        return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "토큰 조회 성공", encode), HttpStatus.OK);
+    }
+
+    @GetMapping("/get-token/user/{email}")
     public ResponseEntity<?> getToken(@PathVariable String email) {
         log.info("getToken 메서드가 실행되었습니다.");
         MemberResponse response = memberService.getByEmail(email);
-        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(6), response.getPublicId(), MemberRole.USER.name(), response.getStatus().name());
+        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(10), response.getPublicId(), MemberRole.USER.name(), response.getStatus().name());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "토큰 조회 성공", encode), HttpStatus.OK);
     }
 }

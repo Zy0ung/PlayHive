@@ -85,7 +85,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             if (status.equals(PENDING.name())) {
                 log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
-                sendErrorResponse(response, HttpStatus.FORBIDDEN, "PENDING 상태인 경우 로그인이 불가능합니다");
+                sendErrorResponse(response, HttpStatus.LOCKED, "PENDING 상태인 경우 로그인이 불가능합니다");
                 return;
             } else if (status.equals(INACTIVE.name())) {
                 log.warn("INACTIVE 상태인 경우 로그인이 불가능합니다");
@@ -113,6 +113,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             log.debug("print accessToken: {}", accessToken);
             log.debug("print refreshToken: {}", refreshToken);
+            log.debug("print role: {}", role);
 
             //Refresh 토큰 저장
             addRefreshEntity(publicId, refreshToken, Duration.ofHours(24));
@@ -121,7 +122,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
             response.setStatus(HttpStatus.OK.value());
-
 
 //            frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
 //            frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
