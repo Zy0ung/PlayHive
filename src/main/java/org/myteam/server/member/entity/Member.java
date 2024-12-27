@@ -16,6 +16,7 @@ import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import static org.myteam.server.member.domain.MemberRole.ADMIN;
 import static org.myteam.server.member.domain.MemberRole.USER;
 import static org.myteam.server.member.domain.MemberStatus.PENDING;
 import static org.myteam.server.member.domain.MemberType.LOCAL;
@@ -124,6 +125,10 @@ public class Member {
 
     public boolean verifyOwnEmail(String email) {
         return email.equals(this.email);
+    }
+
+    public boolean isAdmin() {
+        return this.role.equals(ADMIN);
     }
 
     public boolean validatePassword(String inputPassword, PasswordEncoder bCryptPasswordEncoder) {

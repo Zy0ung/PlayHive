@@ -66,7 +66,7 @@ public class MemberController {
         log.info("email : {}" , response.getEmail());
 
         // 서비스 호출
-        String targetEmail = response.getEmail(); // 상태를 변경할 대상 이메일
+        String targetEmail = response.getEmail(); // 변경을 시도하는 유저의 이메일 (본인 또는 관리자)
 
         memberService.updateStatus(targetEmail, memberStatusUpdateRequest);
 
