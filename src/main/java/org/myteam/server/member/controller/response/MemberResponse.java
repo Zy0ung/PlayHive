@@ -1,4 +1,4 @@
-package org.myteam.server.member.dto;
+package org.myteam.server.member.controller.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
@@ -36,6 +36,9 @@ public class MemberResponse {
 
     @JsonIgnore
     private UUID publicId;
+
+    public MemberResponse() {
+    }
 
     @Builder
     public MemberResponse(final Member member) {

@@ -13,12 +13,16 @@ public enum ErrorCode {
     // 400 Bad Request
     INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "Invalid password"),
     UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "Not Supported OAuth2 provider"),
+    INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid parameter value"),
+    EMPTY_COOKIE(HttpStatus.BAD_REQUEST, "Cookie value is empty"),
 
     // 401 Unauthorized,
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),
+    INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST, "Invalid token type"),
     ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Access Token Session has expired. Please log in again."),
+    INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Token"),
     REFRESH_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Refresh Token Session has expired. Please log in again."),
-    INVALID_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Token"),
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Refresh Token"),
 
     // 403 Forbidden
     ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "Account disabled"),
@@ -27,9 +31,11 @@ public enum ErrorCode {
 
     // 404 Not Found
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "Resource not found"),
 
     // 409 Conflict,
-    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "User already exists");
+    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "User already exists"),
+    RESOURCE_CONFLICT(HttpStatus.CONFLICT, "Resource is in a state that prevents this operation");
 
     private final HttpStatus status;
     private final String msg;

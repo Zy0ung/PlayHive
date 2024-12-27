@@ -6,8 +6,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.auth.entity.Refresh;
+import org.myteam.server.auth.repository.RefreshJpaRepository;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,24 +20,31 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
+import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
+import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
+import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
+import static org.myteam.server.member.domain.MemberStatus.*;
+import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private String frontUrl = "http://localhost:3000"; // TODO_ : 추후 실제 도메인, 포트로 변경
     private static final String ACCESS_TOKEN_KEY = "Authorization";
-    public static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
+    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
+    private final RefreshJpaRepository refreshJpaRepository;
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider) {
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtProvider jwtProvider, RefreshJpaRepository refreshJpaRepository) {
         setFilterProcessesUrl("/login");
         this.authenticationManager = authenticationManager;
         this.jwtProvider = jwtProvider;
+        this.refreshJpaRepository = refreshJpaRepository;
     }
 
     @Override
@@ -67,9 +77,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             String username = customUserDetails.getUsername();
             UUID publicId = customUserDetails.getPublicId();
+            String status = customUserDetails.getStatus();
 
             log.info("successfulAuthentication > username : {}", username);
             log.info("successfulAuthentication > publicId : {}", publicId);
+            log.info("successfulAuthentication > status : {}", status);
+
+            if (status.equals(PENDING.name())) {
+                log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
+                sendErrorResponse(response, HttpStatus.LOCKED, "PENDING 상태인 경우 로그인이 불가능합니다");
+                return;
+            } else if (status.equals(INACTIVE.name())) {
+                log.warn("INACTIVE 상태인 경우 로그인이 불가능합니다");
+                sendErrorResponse(response, HttpStatus.FORBIDDEN, "INACTIVE 상태인 경우 로그인이 불가능합니다");
+                return;
+            } else if (!status.equals(ACTIVE.name())) {
+                log.warn("알 수 없는 유저 상태 코드 : " + status);
+                sendErrorResponse(response, HttpStatus.FORBIDDEN, "알 수 없는 유저 상태 코드 : " + status);
+                return;
+            }
 
             Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
             Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
@@ -79,16 +105,23 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             String role = auth.getAuthority();
 
             // Authorization
-            String accessToken = jwtProvider.generateToken(Duration.ofHours(1), publicId, role);
+            String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role, status);
             // X-Refresh-Token
-            String refreshToken = jwtProvider.generateToken(Duration.ofDays(7), publicId, role);
+            String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role, status);
+            // URLEncoder.encode: 공백을 %2B 로 처리
+            String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+
+            log.debug("print accessToken: {}", accessToken);
+            log.debug("print refreshToken: {}", refreshToken);
+            log.debug("print role: {}", role);
+
+            //Refresh 토큰 저장
+            addRefreshEntity(publicId, refreshToken, Duration.ofHours(24));
 
             response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
-            response.addHeader(REFRESH_TOKEN_KEY, "Bearer " + refreshToken);
-
-            log.info("print accessToken: {}", accessToken);
-            log.info("print refreshToken: {}", refreshToken);
-            log.info("print frontUrl: {}", frontUrl);
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
+            response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
+            response.setStatus(HttpStatus.OK.value());
 
 //            frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
 //            frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
@@ -106,5 +139,33 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.setStatus(401);
         log.debug("message : {}", message);
         System.out.println("fail authentication");
+    }
+
+    public void addRefreshEntity(UUID publicId, String refresh, Duration duration) {
+        log.info("addRefreshEntity > publicId: {}, refresh: {}, expiredMs: {}", publicId, refresh, duration.toMillis());
+        Date date = new Date(System.currentTimeMillis() + duration.toMillis());
+
+        Refresh refreshEntity = Refresh.builder()
+                .publicId(publicId)
+                .refresh(refresh)
+                .expiration(date.toString())
+                .build();
+
+        refreshJpaRepository.save(refreshEntity);
+    }
+
+    /**
+     * 공통 에러 응답 처리 메서드
+     *
+     * @param response HttpServletResponse
+     * @param httpStatus HTTP 상태 오브젝트
+     * @param message 메시지
+     * @throws IOException
+     */
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus httpStatus, String message) throws IOException {
+        response.setStatus(httpStatus.value());
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"message\":\"%s\",\"status\":\"%s\"}", message, httpStatus.name()));
     }
 }

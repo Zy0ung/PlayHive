@@ -2,6 +2,9 @@ package org.myteam.server.global.security.config;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.auth.repository.RefreshJpaRepository;
+import org.myteam.server.global.security.filter.AuthenticationEntryPointHandler;
+import org.myteam.server.global.security.filter.CustomAccessDeniedHandler;
 import org.myteam.server.global.security.handler.LogoutSuccessHandler;
 import org.myteam.server.global.security.filter.JwtAuthenticationFilter;
 import org.myteam.server.global.security.jwt.JwtProvider;
@@ -14,6 +17,7 @@ import org.myteam.server.oauth2.service.CustomOAuth2UserService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -30,6 +34,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
+
 @Slf4j
 @Configuration
 @EnableWebSecurity
@@ -44,6 +50,7 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2SuccessHandler customOauth2SuccessHandler;
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+    private final RefreshJpaRepository refreshJpaRepository;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -91,11 +98,14 @@ public class SecurityConfig {
             );
 
         http
-            .addFilterBefore(new TokenAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class)
             .addFilterAt(
-                    new JwtAuthenticationFilter(authenticationManager(), jwtProvider),
+                    new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
                     UsernamePasswordAuthenticationFilter.class
-            ); // 회원 로그인 필터
+            ) // 로그인 인증 필터
+            .addFilterAfter(
+                        new TokenAuthenticationFilter(jwtProvider),
+                        JwtAuthenticationFilter.class
+            ); // JWT 토큰 검증 필터
 
         // cors 설정
         http
@@ -104,11 +114,31 @@ public class SecurityConfig {
         // 경로별 인가 작업
         http
             .authorizeHttpRequests(authorizeRequests ->
-                    authorizeRequests
-                            .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
-                            .requestMatchers("/test/**").authenticated()      // /test/** 경로는 인증 필요
-                            .requestMatchers("/api/admin/**").hasAnyRole(MemberRole.ADMIN.name())
-                            .anyRequest().permitAll()                         // 나머지 요청은 모두 허용
+                authorizeRequests
+                    .requestMatchers("/upload/**").permitAll()       // 정적 자원 접근 허용
+                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
+
+                    .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
+                    .requestMatchers("/api/members/get-token/**").permitAll()       // 테스트용 토큰 발급용
+
+                    .requestMatchers("/api/admin/**").hasAnyAuthority(MemberRole.ADMIN.name())
+                    .requestMatchers(HttpMethod.POST, "/api/me/create").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                    .requestMatchers(HttpMethod.PUT, "/api/categories/**").hasAnyAuthority(MemberRole.ADMIN.name())
+                    .requestMatchers(HttpMethod.DELETE, "/api/categories/**").hasAnyAuthority(MemberRole.ADMIN.name())
+                    .requestMatchers(HttpMethod.POST, "/api/categories").hasAnyAuthority(MemberRole.ADMIN.name())
+
+                    .requestMatchers(TOKEN_REISSUE_PATH).permitAll()          // 토큰 재발급
+                    .requestMatchers("/api/members/role").permitAll()       // 유저 권한 변경 허용
+
+                    .anyRequest().authenticated()                   // 나머지 요청은 모두 허용
+            );
+
+        http
+            .exceptionHandling(errorHandling ->
+                    errorHandling
+                        .authenticationEntryPoint(new AuthenticationEntryPointHandler())
+                        .accessDeniedHandler(new CustomAccessDeniedHandler())
             );
 
         // 로그아웃 처리
@@ -116,7 +146,7 @@ public class SecurityConfig {
             .logout(logout -> logout
             .logoutUrl("/logout")
             .invalidateHttpSession(true)
-            .logoutSuccessHandler(new LogoutSuccessHandler())
+            .logoutSuccessHandler(new LogoutSuccessHandler(jwtProvider, refreshJpaRepository))
             .permitAll());
 
         return http.build();
