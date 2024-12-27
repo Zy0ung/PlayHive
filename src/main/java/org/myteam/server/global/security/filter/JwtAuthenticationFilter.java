@@ -83,8 +83,17 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             log.info("successfulAuthentication > publicId : {}", publicId);
             log.info("successfulAuthentication > status : {}", status);
 
+            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+            Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
+            GrantedAuthority auth = iterator.next();
+
             if (status.equals(PENDING.name())) {
                 log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
+                // X-Refresh-Token
+                String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, auth.getAuthority(), status);
+                String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+
+                response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 5 * 60, true));
                 sendErrorResponse(response, HttpStatus.LOCKED, "PENDING 상태인 경우 로그인이 불가능합니다");
                 return;
             } else if (status.equals(INACTIVE.name())) {
@@ -96,10 +105,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 sendErrorResponse(response, HttpStatus.FORBIDDEN, "알 수 없는 유저 상태 코드 : " + status);
                 return;
             }
-
-            Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-            Iterator<? extends GrantedAuthority> iterator = authorities.iterator();
-            GrantedAuthority auth = iterator.next();
 
             // 권한 획득
             String role = auth.getAuthority();
