@@ -29,9 +29,11 @@ public enum ErrorCode {
     // 404 Not Found
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "Room not found"),
+    BAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Ban not found"),
 
     // 409 Conflict,
-    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "User already exists");
+    USER_ALREADY_EXISTS(HttpStatus.CONFLICT, "User already exists"),
+    BAN_ALREADY_EXISTS(HttpStatus.CONFLICT, "This user already exists");
 
     private final HttpStatus status;
     private final String msg;
