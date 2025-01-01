@@ -2,6 +2,7 @@ package org.myteam.server.chat.interceptor;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.ban.service.BanService;
 import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
@@ -24,35 +25,83 @@ import org.springframework.stereotype.Component;
 public class StompHandler implements ChannelInterceptor {
 
     private final JwtProvider jwtProvider;
+    private final BanService banService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel messageChannel) {
 
-        StompHeaderAccessor headerAccessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-        if (StompCommand.CONNECT == headerAccessor.getCommand()) {
-            String authorizationHeader = String.valueOf(headerAccessor.getNativeHeader("Authorization"));
+        StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-            if (authorizationHeader == null || !authorizationHeader.startsWith("[Bearer ")) {
-                log.warn("No Authorization header or not Bearer type");
-                throw new PlayHiveException(ErrorCode.MISSING_AUTH_HEADER);
+        StompCommand command = accessor.getCommand();
+        if (command == StompCommand.CONNECT) {
+            String authorizationHeader = getAuthorizationHeader(accessor);
+
+            if (authorizationHeader == null || authorizationHeader.isEmpty()) {
+                log.info("No Authorization header. Treat as anonymous user.");
+                return message;
             }
 
-            String token = authorizationHeader.split(" ")[1];
-            token = token.substring(0, token.length() - 1);
-            if (!jwtProvider.validToken(token)) {
-                log.warn("InValid JWT token");
-                throw new PlayHiveException(ErrorCode.INVALID_TOKEN);
-            }
-            Authentication authentication = jwtProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            headerAccessor.setUser(authentication);
+            handleConnect(accessor, authorizationHeader);
         }
-
-        if (headerAccessor.equals(StompCommand.ERROR)) {
+        else if (command == StompCommand.ERROR) {
+            // ERROR 프레임의 경우
             throw new PlayHiveException(ErrorCode.INVALID_TOKEN);
         }
 
-
         return message;
+    }
+
+    /**
+     * STOMP CONNECT 프레임 처리 로직
+     */
+    private void handleConnect(StompHeaderAccessor accessor, String authorizationHeader) {
+
+        if (!authorizationHeader.startsWith("[Bearer ")) {
+            log.warn("Authorization header missing or not Bearer type: {}", authorizationHeader);
+            throw new PlayHiveException(ErrorCode.MISSING_AUTH_HEADER);
+        }
+
+        String token = extractToken(authorizationHeader);
+
+        if (!jwtProvider.validToken(token)) {
+            log.warn("Invalid JWT token: {}", token);
+            throw new PlayHiveException(ErrorCode.INVALID_TOKEN);
+        }
+
+        Authentication authentication = jwtProvider.getAuthentication(token);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        accessor.setUser(authentication);
+
+        String username = accessor.getUser() != null ? accessor.getUser().getName() : null;
+        if (banService.isBannedUser(username)) {
+            log.warn("Banned user tried to connect: {}", username);
+            throw new PlayHiveException(ErrorCode.BAN_USER);
+        }
+
+        log.info("Authenticated user connected: {}", username);
+    }
+
+    /**
+     * STOMP 헤더에서 "Authorization" 값을 얻는다.
+     */
+    private String getAuthorizationHeader(StompHeaderAccessor accessor) {
+        String authHeaders = String.valueOf(accessor.getNativeHeader("Authorization"));
+        if (authHeaders == null || authHeaders.isEmpty()) {
+            return null;
+        }
+        return authHeaders;
+    }
+
+    /**
+     * "[Bearer xxxxx]" 형태에서 실제 토큰 부분만 추출
+     */
+    private String extractToken(String authorizationHeader) {
+        String[] parts = authorizationHeader.split(" ");
+        if (parts.length < 2) {
+            throw new PlayHiveException(ErrorCode.MISSING_AUTH_HEADER);
+        }
+
+        String rawToken = parts[1];
+        return rawToken.substring(0, rawToken.length() - 1); // "]" 제거
     }
 }

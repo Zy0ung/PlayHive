@@ -54,6 +54,16 @@ public class BanService {
         return toBanResponse(ban);
     }
 
+    /**
+     * 밴 유저 조회
+     */
+    public boolean isBannedUser(String username) {
+        if (banRepository.existsByUsername(username)) {
+            return true;
+        }
+        return false;
+    }
+
     private BanResponse toBanResponse(Ban ban) {
         return BanResponse.builder()
                 .id(ban.getId())

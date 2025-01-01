@@ -25,6 +25,7 @@ public enum ErrorCode {
     ACCOUNT_DISABLED(HttpStatus.FORBIDDEN, "Account disabled"),
     ACCOUNT_LOCKED(HttpStatus.FORBIDDEN, "Account locked"),
     NO_PERMISSION(HttpStatus.FORBIDDEN, "This account has no permission"),
+    BAN_USER(HttpStatus.FORBIDDEN, "You are banned from this service."),
 
     // 404 Not Found
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not found"),
