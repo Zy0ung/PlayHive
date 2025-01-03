@@ -35,6 +35,8 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
+import static org.myteam.server.global.security.jwt.JwtProvider.HEADER_AUTHORIZATION;
+import static org.myteam.server.global.security.jwt.JwtProvider.REFRESH_TOKEN_KEY;
 
 @Slf4j
 @Configuration
@@ -168,8 +170,8 @@ public class SecurityConfig {
         configuration.addAllowedMethod("*");
         configuration.addAllowedOrigin(frontUrl); // TODO_ 추후 변경 해야함 배포시
         configuration.setAllowCredentials(true);
-        configuration.addExposedHeader("Authorization");
-        configuration.addExposedHeader("X-Refresh-Token");
+        configuration.addExposedHeader(HEADER_AUTHORIZATION);
+        configuration.addExposedHeader(REFRESH_TOKEN_KEY);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

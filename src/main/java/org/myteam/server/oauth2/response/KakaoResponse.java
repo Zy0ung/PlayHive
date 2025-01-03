@@ -2,7 +2,7 @@ package org.myteam.server.oauth2.response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.myteam.server.member.domain.GenderType;
-import org.myteam.server.util.validator.UserValidator;
+import org.myteam.server.member.domain.validator.MemberValidator;
 
 import java.time.LocalDate;
 import java.util.Collections;
@@ -85,7 +85,7 @@ public class KakaoResponse implements OAuth2Response {
                 .replace("-", "")                  // 하이픈 제거
                 .replace(" ", "");                 // 공백 제거
 
-        return UserValidator.validateTel(phoneNumber);
+        return MemberValidator.validateTel(phoneNumber);
     }
 
     /**

@@ -18,11 +18,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.myteam.server.global.exception.ErrorCode.*;
+import static org.myteam.server.global.security.jwt.JwtProvider.REFRESH_TOKEN_KEY;
 import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
 import static org.springframework.http.HttpMethod.POST;
 
 public class LogoutSuccessHandler implements org.springframework.security.web.authentication.logout.LogoutSuccessHandler {
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     final JwtProvider jwtProvider;
     final RefreshJpaRepository refreshJpaRepository;

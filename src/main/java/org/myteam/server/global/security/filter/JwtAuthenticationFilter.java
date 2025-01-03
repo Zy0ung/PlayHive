@@ -27,15 +27,12 @@ import java.util.*;
 
 import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.member.domain.MemberStatus.*;
 import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    private static final String ACCESS_TOKEN_KEY = "Authorization";
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
     private final AuthenticationManager authenticationManager;
     private final JwtProvider jwtProvider;
     private final RefreshJpaRepository refreshJpaRepository;
@@ -91,7 +88,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
                 // X-Refresh-Token
                 String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, auth.getAuthority(), status);
-                String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+                String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
 
                 response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 5 * 60, true));
                 sendErrorResponse(response, HttpStatus.LOCKED, "PENDING 상태인 경우 로그인이 불가능합니다");
@@ -114,7 +111,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             // X-Refresh-Token
             String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role, status);
             // URLEncoder.encode: 공백을 %2B 로 처리
-            String cookieValue = URLEncoder.encode("Bearer " + refreshToken, StandardCharsets.UTF_8);
+            String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
 
             log.debug("print accessToken: {}", accessToken);
             log.debug("print refreshToken: {}", refreshToken);
@@ -123,7 +120,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             //Refresh 토큰 저장
             addRefreshEntity(publicId, refreshToken, Duration.ofHours(24));
 
-            response.addHeader(ACCESS_TOKEN_KEY, "Bearer " + accessToken);
+            response.addHeader(HEADER_AUTHORIZATION, TOKEN_PREFIX + accessToken);
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
             response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
             response.setStatus(HttpStatus.OK.value());

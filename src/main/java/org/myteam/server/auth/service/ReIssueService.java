@@ -20,9 +20,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.myteam.server.global.exception.ErrorCode.*;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_ACCESS;
-import static org.myteam.server.global.security.jwt.JwtProvider.TOKEN_CATEGORY_REFRESH;
-import static org.myteam.server.util.cookie.CookieUtil.getCookie;
+import static org.myteam.server.global.security.jwt.JwtProvider.*;
+import static org.myteam.server.global.util.cookie.CookieUtil.getCookie;
 
 @Slf4j
 @Service
@@ -30,7 +29,6 @@ import static org.myteam.server.util.cookie.CookieUtil.getCookie;
 public class ReIssueService {
     private final JwtProvider jwtProvider;
     private final RefreshJpaRepository refreshJpaRepository;
-    private static final String REFRESH_TOKEN_KEY = "X-Refresh-Token";
 
     /**
      * Refresh Token 검증

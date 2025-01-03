@@ -1,4 +1,4 @@
-package org.myteam.server.util.date;
+package org.myteam.server.global.util.date;
 
 import java.sql.Date;
 import java.sql.Time;

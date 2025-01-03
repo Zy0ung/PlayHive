@@ -1,8 +1,8 @@
-package org.myteam.server.util.validator;
+package org.myteam.server.member.domain.validator;
 
 import java.util.regex.Pattern;
 
-public class UserValidator {
+public class MemberValidator {
     private static final String TEL_PATTERN = "^010[0-9]{8}$";
 
     public static String validateTel(String tel) {
