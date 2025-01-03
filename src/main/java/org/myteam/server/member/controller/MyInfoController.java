@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.myteam.server.auth.service.ReIssueService;
 import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.web.response.ResponseDto;
@@ -25,7 +26,7 @@ import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
 import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
-import static org.myteam.server.util.cookie.CookieUtil.createCookie;
+import static org.myteam.server.global.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 @RestController
@@ -34,6 +35,7 @@ import static org.myteam.server.util.cookie.CookieUtil.createCookie;
 public class MyInfoController {
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
+    private final ReIssueService reIssueService;
 
     @PostMapping("/create")
     public ResponseEntity<?> create(@RequestBody @Valid MemberSaveRequest memberSaveRequest,
@@ -46,9 +48,11 @@ public class MyInfoController {
         // Authorization
         String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         // X-Refresh-Token
-        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), response.getPublicId(), response.getRole().name(), response.getStatus().name());
+        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(1), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         // URLEncoder.encode: 공백을 %2B 로 처리
         String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
+
+        reIssueService.addRefreshEntity(response.getPublicId(), refreshToken, Duration.ofDays(1));
 
         // 응답 헤더 설정
         httpServletResponse.addHeader(HEADER_AUTHORIZATION, TOKEN_PREFIX + accessToken);
@@ -72,8 +76,8 @@ public class MyInfoController {
                                     BindingResult bindingResult,
                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("MyInfoController update 메서드 실행 : {}", memberUpdateRequest.toString());
-        String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
-        MemberResponse response = memberService.update(email, memberUpdateRequest);
+        String loginUserEmail = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
+        MemberResponse response = memberService.update(loginUserEmail, memberUpdateRequest);
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원정보 수정 성공", response), HttpStatus.OK);
     }
 
@@ -92,9 +96,9 @@ public class MyInfoController {
                                     BindingResult bindingResult,
                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
         log.info("MyInfoController delete 메서드 실행");
-        String email = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
+        String loginUserEmail = memberService.getCurrentLoginUserEmail(userDetails.getPublicId()); // 현재 로그인한 사용자 이메일
 
-        memberService.delete(email, memberDeleteRequest.getPassword());
+        memberService.delete(memberDeleteRequest.getEmail(), loginUserEmail, memberDeleteRequest.getPassword());
 
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원 삭제 성공", null), HttpStatus.OK);
     }

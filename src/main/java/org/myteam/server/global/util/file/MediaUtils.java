@@ -1,4 +1,4 @@
-package org.myteam.server.util.file;
+package org.myteam.server.global.util.file;
 
 import org.springframework.http.MediaType;
 

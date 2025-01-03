@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import static org.myteam.server.global.exception.ErrorCode.*;
 import static org.myteam.server.global.security.jwt.JwtProvider.*;
-import static org.myteam.server.util.cookie.CookieUtil.getCookie;
+import static org.myteam.server.global.util.cookie.CookieUtil.getCookie;
 
 @Slf4j
 @Service
