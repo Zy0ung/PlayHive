@@ -64,6 +64,11 @@ dependencies {
     // mysql-connector 추가
     implementation group: 'com.mysql', name: 'mysql-connector-j', version: '8.3.0'
 
+    // imgscalr-lib
+    implementation group: 'org.imgscalr', name: 'imgscalr-lib', version: '4.2'
+
+    // commons-io
+    implementation 'commons-io:commons-io:2.14.0'
 
     // Swagger
     implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.6.0'

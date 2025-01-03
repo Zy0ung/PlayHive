@@ -122,6 +122,8 @@ public class SecurityConfig {
 
                     .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
                     .requestMatchers("/api/members/get-token/**").permitAll()       // 테스트용 토큰 발급용
+                    .requestMatchers("/api/attachments/**").permitAll()       // 테스트용
+                    .requestMatchers("/api/posts/**").permitAll()       // 테스트용
 
                     .requestMatchers("/api/admin/**").hasAnyAuthority(MemberRole.ADMIN.name())
                     .requestMatchers(HttpMethod.POST, "/api/me/create").permitAll()

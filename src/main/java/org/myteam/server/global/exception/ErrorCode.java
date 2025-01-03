@@ -9,12 +9,14 @@ public enum ErrorCode {
     // 500 Server Error
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "PlayHive Server Error"),
     API_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "API Server Error"),
+    IO_EXCEPTION(HttpStatus.INTERNAL_SERVER_ERROR, "File I/O operation failed"),
 
     // 400 Bad Request
     INVALID_CREDENTIALS(HttpStatus.BAD_REQUEST, "Invalid password"),
     UNSUPPORTED_OAUTH_PROVIDER(HttpStatus.BAD_REQUEST, "Not Supported OAuth2 provider"),
     INVALID_PARAMETER(HttpStatus.BAD_REQUEST, "Invalid parameter value"),
     EMPTY_COOKIE(HttpStatus.BAD_REQUEST, "Cookie value is empty"),
+    INVALID_TYPE(HttpStatus.BAD_REQUEST, "Invalid type provided"),
 
     // 401 Unauthorized,
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),

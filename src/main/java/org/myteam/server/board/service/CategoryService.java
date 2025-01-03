@@ -57,7 +57,6 @@ public class CategoryService {
             }
 
             categoryEntity.updateOrderIndex(calculateOrderIndex(categoryJpaRepository.findByParentIsNull()));
-            // categoryEntity.updateOrderIndex();
         }
 
         Category savedEntity = categoryJpaRepository.save(categoryEntity);

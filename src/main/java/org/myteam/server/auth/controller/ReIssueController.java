@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.myteam.server.global.exception.ErrorCode.INTERNAL_SERVER_ERROR;
 import static org.myteam.server.global.security.jwt.JwtProvider.*;
-import static org.myteam.server.util.cookie.CookieUtil.createCookie;
+import static org.myteam.server.global.util.cookie.CookieUtil.createCookie;
 
 /**
  * TODO_ : 리프레시 토큰에 대한 블랙 리스트 작성
