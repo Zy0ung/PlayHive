@@ -3,6 +3,7 @@ package org.myteam.server.global.security.config;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.auth.repository.RefreshJpaRepository;
+import org.myteam.server.global.config.WebConfig;
 import org.myteam.server.global.security.filter.AuthenticationEntryPointHandler;
 import org.myteam.server.global.security.filter.CustomAccessDeniedHandler;
 import org.myteam.server.global.security.handler.LogoutSuccessHandler;
@@ -45,9 +46,26 @@ import static org.myteam.server.global.security.jwt.JwtProvider.REFRESH_TOKEN_KE
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    /* 권한 제외 대상 */
+    private static final String[] permitAllUrl = new String[]{
+            /** @brief test */"/test/exception-test",
+            /** @brief Swagger Docs */ "/v3/api-docs/**", "/swagger-ui/**",
+            /** @brief database url */ "/h2-console",
+            /** @brief about login */ "/auth/**",
+    };
+    /* Admin 접근 권한 */
+    private static final String[] permitAdminUrl = new String[]{
+            /** @brief Check Access Admin */ "/test/manager-access-test/**",
+    };
+    /* member 접근 권한 */
+    private static final String[] permitMemberUrl = new String[]{
+            "/test/user-access-test/**",
+    };
+
     @Value("${FRONT_URL:http://localhost:3000}")
     private String frontUrl;
     private final JwtProvider jwtProvider;
+    private final WebConfig webConfig;
     private final CustomUserDetailsService customUserDetailsService;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomOauth2SuccessHandler customOauth2SuccessHandler;
@@ -104,10 +122,8 @@ public class SecurityConfig {
                     new JwtAuthenticationFilter(authenticationManager(), jwtProvider, refreshJpaRepository),
                     UsernamePasswordAuthenticationFilter.class
             ) // 로그인 인증 필터
-            .addFilterAfter(
-                        new TokenAuthenticationFilter(jwtProvider),
-                        JwtAuthenticationFilter.class
-            ); // JWT 토큰 검증 필터
+            .addFilterAfter(new TokenAuthenticationFilter(jwtProvider), JwtAuthenticationFilter.class)
+                .addFilter(webConfig.corsFilter()); // JWT 토큰 검증 필터
 
         // cors 설정
         http
@@ -118,7 +134,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
                     .requestMatchers("/upload/**").permitAll()       // 정적 자원 접근 허용
-                    .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-resources/**").permitAll()
+                    .requestMatchers(permitAllUrl).permitAll()
+                    .requestMatchers(permitAdminUrl).hasRole("ADMIN")
 
                     .requestMatchers("/h2-console").permitAll()       // H2 콘솔 접근 허용
                     .requestMatchers("/api/members/get-token/**").permitAll()       // 테스트용 토큰 발급용
