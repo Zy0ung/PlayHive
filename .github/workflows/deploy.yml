@@ -16,7 +16,7 @@ on:
       - dev
       
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,70 +32,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
       
-      - name: Set environment variables
+      - name: Build Docker Image
         run: |
-          echo "EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" >> $GITHUB_ENV
-          echo "EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> $GITHUB_ENV
-          echo "SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}" >> $GITHUB_ENV
-          
-          echo "DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> $GITHUB_ENV
-          
-          echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> $GITHUB_ENV
-          
-          echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> $GITHUB_ENV
-          
-          echo "NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> $GITHUB_ENV
-          echo "NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> $GITHUB_ENV
-        env:
-          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-          DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
-          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/play-hive:latest .
 
-      - name: Build and Test with Gradle
-        run: ./gradlew clean build --info
-        env:
-          EMAIL_USERNAME: ${{ secrets.EMAIL_USERNAME }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-          DISCORD_CLIENT_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-          DISCORD_CLIENT_SECRET: ${{ secrets.DISCORD_CLIENT_SECRET }}
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
-          KAKAO_CLIENT_SECRET: ${{ secrets.KAKAO_CLIENT_SECRET }}
-          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
-          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-
-      - name: List JAR Files
-        run: ls -la build/libs/
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
         with:
-          name: spring-app
-          path: build/libs/*.jar
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Push Docker Image to Docker Hub
+        run: | 
+          docker push ${{ secrets.DOCKER_USERNAME }}/play-hive:latest
 
   deploy:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Download Artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: spring-app
-      
+    steps:     
       - name: Install Java on AWS
         uses: appleboy/ssh-action@v0.1.10
         with:
@@ -112,63 +67,52 @@ jobs:
               echo "Java is already installed."
             fi
 
-      - name: Deploy to AWS
-        uses: appleboy/scp-action@v0.1.4
-        with:
-          host: ${{ secrets.AWS_SERVER_IP }}
-          username: ${{ secrets.AWS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "*.jar"
-          target: "~/play-hive"
-
-      - name: Set environment variables on AWS
+      - name: Deploy to AWS and Restart Services with Docker Compose
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.AWS_SERVER_IP }}
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            echo "Setting environment variables on AWS server..."
-            echo "export EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }}" >> ~/.bashrc
-            echo "export EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}" >> ~/.bashrc
-            echo "export SENDER_EMAIL=${{ secrets.SENDER_EMAIL }}" >> ~/.bashrc
-            echo "export DISCORD_CLIENT_ID=${{ secrets.DISCORD_CLIENT_ID }}" >> ~/.bashrc
-            echo "export DISCORD_CLIENT_SECRET=${{ secrets.DISCORD_CLIENT_SECRET }}" >> ~/.bashrc
-            echo "export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> ~/.bashrc
-            echo "export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> ~/.bashrc
-            echo "export KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> ~/.bashrc
-            echo "export KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}" >> ~/.bashrc
-            echo "export NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }}" >> ~/.bashrc
-            echo "export NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }}" >> ~/.bashrc
-            source ~/.bashrc
-            echo "Environment variables set successfully."
-
-      - name: Restart Server
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.AWS_SERVER_IP }}
-          username: ${{ secrets.AWS_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Define variables
+            # 이동할 디렉토리 설정
             DEPLOY_DIR=~/play-hive
-            JAR_FILE=server-0.0.1-SNAPSHOT.jar
 
-            # Kill process on port 8080
-            echo "Finding and killing process on port 8080..."
-            PID=$(sudo lsof -t -i:8080)
-            if [ -n "$PID" ]; then
-              echo "Killing process with PID $PID..."
-              sudo kill -9 $PID
-            else
-              echo "No process found on port 8080."
-            fi
-
-            # Navigate to deployment directory
             echo "Navigating to deployment directory: $DEPLOY_DIR"
             cd $DEPLOY_DIR || exit
 
-            # Start the new server with environment variables
-            echo "Starting new server: $JAR_FILE"
-            nohup env EMAIL_USERNAME=${{ secrets.EMAIL_USERNAME }} EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }} SENDER_EMAIL=${{ secrets.SENDER_EMAIL }} java -jar $JAR_FILE > app.log 2>&1 &
-            echo "Server started. Logs can be found in $DEPLOY_DIR/app.log"
+            # 최신 Docker 및 Docker Compose 설치 확인
+            echo "Ensuring Docker and Docker Compose are installed..."
+            
+            # Docker 설치 여부 확인
+            if ! docker --version &>/dev/null; then
+              echo "Docker is not installed. Installing Docker..."
+              sudo apt-get update
+              sudo apt-get install -y docker.io
+              sudo systemctl start docker
+              sudo systemctl enable docker
+            else
+              echo "Docker is already installed."
+            fi
+            
+            # Docker Compose 설치 여부 확인
+            if ! docker-compose --version &>/dev/null; then
+              echo "Docker Compose is not installed. Installing Docker Compose..."
+              sudo apt-get update
+              sudo apt-get install -y docker-compose
+            else
+              echo "Docker Compose is already installed."
+            fi
+
+            # 기존 컨테이너 중지 및 제거
+            echo "Stopping and removing existing containers..."
+            docker-compose down || true
+            
+            # 최신 이미지를 가져오기
+            echo "Pulling the latest Docker image..."
+            docker-compose pull
+            
+            # 컨테이너 재실행
+            echo "Starting containers with Docker Compose..."
+            docker-compose up -d
+  
+            echo "Deployment completed successfully!"
