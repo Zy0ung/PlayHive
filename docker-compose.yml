@@ -21,4 +21,6 @@ services:
       SENDER_EMAIL: ${SENDER_EMAIL}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       EMAIL_USERNAME: ${EMAIL_USERNAME}
+      DOCKER_USERNAME: ${DOCKER_USERNAME}
+      DOCKER_PASSWORD: ${DOCKER_PASSWORD}
     restart: always  # 컨테이너가 중단되었을 때 재시작 설정
