@@ -8,6 +8,9 @@ import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 
+import static org.myteam.server.global.security.jwt.JwtProvider.HEADER_AUTHORIZATION;
+import static org.myteam.server.global.security.jwt.JwtProvider.REFRESH_TOKEN_KEY;
+
 @Configuration
 public class WebConfig {
 
@@ -28,6 +31,9 @@ public class WebConfig {
         config.setAllowedOrigins(Arrays.asList(ALLOWED_ORIGIN));
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+        config.setAllowCredentials(true);
+        config.addExposedHeader(HEADER_AUTHORIZATION);
+        config.addExposedHeader(REFRESH_TOKEN_KEY);
 
         source.registerCorsConfiguration("/**", config);
 
