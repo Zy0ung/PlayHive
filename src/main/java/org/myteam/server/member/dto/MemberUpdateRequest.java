@@ -4,7 +4,6 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Getter;
-import org.myteam.server.member.domain.MemberStatus;
 
 @Getter
 @Builder
@@ -19,6 +18,4 @@ public class MemberUpdateRequest {
     // _-. 를 포함하는 닉네임 생성 가능
     @Pattern(regexp = "^[a-zA-Z가-힣0-9]{1,10}$", message = "한글/영문/_- 1~10자 이내로 작성해주세요")
     private String nickname;
-
-    private MemberStatus status;
 }
