@@ -113,6 +113,6 @@ jobs:
             
             # 컨테이너 재실행
             echo "Starting containers with Docker Compose..."
-            sudo docker-compose up -d
+            sudo docker-compose --env-file .env up -d
   
             echo "Deployment completed successfully!"
