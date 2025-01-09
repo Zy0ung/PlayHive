@@ -73,7 +73,7 @@ jobs:
           host: ${{ secrets.AWS_SERVER_IP }}
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: docker-compose.yml
+          source: ./docker-compose.yml
           target: ~/play-hive/docker-compose.yml
 
       - name: Deploy to AWS and Restart Services with Docker Compose
