@@ -39,7 +39,7 @@ jobs:
           username: ${{ secrets.AWS_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           source: ./docker-compose.yml
-          target: ~/play-hive/docker-compose.yml
+          target: ~/play-hive/
           
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
