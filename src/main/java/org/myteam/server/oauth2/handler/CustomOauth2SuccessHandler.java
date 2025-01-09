@@ -54,16 +54,10 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
                 .orElseThrow(() -> new RuntimeException("Member not found"));
         log.info("onAuthenticationSuccess publicId: {}", member.getPublicId());
         log.info("onAuthenticationSuccess role: {}", member.getRole());
-
-
+        
         if (status.equals(PENDING.name())) {
             log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
             // sendErrorResponse(response, HttpStatus.FORBIDDEN, "PENDING 상태인 경우 로그인이 불가능합니다");
-            // X-Refresh-Token
-            // String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofMinutes(5), member.getPublicId(), member.getRole().name(), member.getStatus().name());
-            // String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
-
-            // response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 5 * 60, true));
             response.sendRedirect(frontUrl + "?status=" + status);
             return;
         } else if (status.equals(INACTIVE.name())) {
@@ -80,24 +74,12 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
 
         // Authorization
         String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofDays(1), member.getPublicId(), member.getRole().name(), member.getStatus().name());
-        // X-Refresh-Token
-        // String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(1), member.getPublicId(), member.getRole().name(), member.getStatus().name());
-        // String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
-
-        // redirect 순간 Header 값 날아감
-        // response.addHeader(ACCESS_TOKEN_KEY, TOKEN_PREFIX + accessToken);
-        // response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
-        // response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
 
         log.debug("print accessToken: {}", accessToken);
         // log.debug("print refreshToken: {}", refreshToken);
         log.debug("print frontUrl: {}", frontUrl);
 
-//        frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
-//        frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
-        // front 로 리다이렉트 후 Access Token 재갱신 처리하도록 권유
         response.sendRedirect(frontUrl);
-
         log.debug("Oauth 로그인에 성공하였습니다.");
     }
 }

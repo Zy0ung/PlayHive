@@ -81,11 +81,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             if (status.equals(PENDING.name())) {
                 log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
-                // X-Refresh-Token
-                // String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofMinutes(5), publicId, auth.getAuthority(), status);
-                // String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
-
-                // response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 5 * 60, true));
                 sendErrorResponse(response, HttpStatus.LOCKED, "PENDING 상태인 경우 로그인이 불가능합니다");
                 return;
             } else if (status.equals(INACTIVE.name())) {
@@ -103,26 +98,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             // Authorization
             String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofDays(1), publicId, role, status);
-            // X-Refresh-Token
-            // String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(1), publicId, role, status);
-            // URLEncoder.encode: 공백을 %2B 로 처리
-            // String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
 
             log.debug("print accessToken: {}", accessToken);
-            // log.debug("print refreshToken: {}", refreshToken);
             log.debug("print role: {}", role);
 
-            //Refresh 토큰 저장
-            // addRefreshEntity(publicId, refreshToken, Duration.ofHours(24));
-
             response.addHeader(HEADER_AUTHORIZATION, TOKEN_PREFIX + accessToken);
-            // response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
-            // response.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
             response.setStatus(HttpStatus.OK.value());
 
-//            frontUrl += "?" + ACCESS_TOKEN_KEY + "=" + ("Bearer%20" + accessToken);
-//            frontUrl += "&" + REFRESH_TOKEN_KEY + "=" + ("Bearer%20" + refreshToken);
-//            response.sendRedirect(frontUrl);
             log.info("자체 서비스 로그인에 성공하였습니다.");
         } catch (InternalAuthenticationServiceException e) {
             System.out.println("successfulAuthentication 메서드 에러 발생 : " + e.getMessage());
