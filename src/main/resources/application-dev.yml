@@ -1,14 +1,13 @@
 spring:
-
   datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_ENDPOINT}/${DB_NAME}?useSSL=false&serverTimezone=UTC
+    username: playhive
+    password: ${DB_PASSWORD}
 
 
   jpa:
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: false
@@ -17,7 +16,7 @@ spring:
     hibernate:
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-      ddl-auto: create-drop
+      ddl-auto: update
       #  create	기존테이블을 삭제하고 다시 생성
       #  create-drop 기존테이블을 삭제하고 다시생성. 종료 시점에 테이블삭제
       #  update	변경된 스키마 적용 (운영 DB 에서 사용X)
@@ -27,12 +26,12 @@ spring:
 
 logging:
   level:
-    root: INFO  # 전체 로그를 INFO, DEBUG, WARN 수준으로 설정
-    org.springframework.security: TRACE
-    org.springframework.web: INFO
-    com.myteam.server: DEBUG
+    root: warn  # 전체 로그를 INFO, DEBUG, WARN 수준으로 설정
+    org.springframework.security: warn
+    org.springframework.web: warn
+    com.myteam.server: info
     # 필요 시 특정 SQL 로그를 추가하거나 Hibernate SQL 로그를 설정
-    hibernate.SQL: INFO
+    hibernate.SQL: warn
     org.springframework.boot.autoconfigure: INFO
     org.springframework.beans.factory.support.DefaultListableBeanFactory: WARN
     # 아직 Thymeleaf 를 사용하지 않기 때문에, 경고 메세지를 제거합니다.
