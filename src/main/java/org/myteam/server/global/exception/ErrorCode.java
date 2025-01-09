@@ -20,6 +20,7 @@ public enum ErrorCode {
 
     // 401 Unauthorized,
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Unauthorized"),
+    OAUTH2_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "Oauth2 Unauthorized"),
     INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST, "Invalid token type"),
     ACCESS_TOKEN_EXPIRED(HttpStatus.BAD_REQUEST, "Access Token Session has expired. Please log in again."),
     INVALID_ACCESS_TOKEN(HttpStatus.UNAUTHORIZED, "Invalid Token"),

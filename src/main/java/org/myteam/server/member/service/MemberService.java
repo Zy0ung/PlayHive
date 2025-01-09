@@ -7,6 +7,7 @@ import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.domain.MemberStatus;
+import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.dto.*;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberJpaRepository;
@@ -230,5 +231,11 @@ public class MemberService {
         String accessToken = jwtProvider.getAccessToken(authorizationHeader);
         UUID publicId = jwtProvider.getPublicId(accessToken);
         return getByPublicId(publicId);
+    }
+
+    public MemberType getMemberTypeByEmail(String email) {
+        return memberRepository.findByEmail(email)
+                .map(Member::getType)
+                .orElse(null);
     }
 }

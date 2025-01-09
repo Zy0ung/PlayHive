@@ -9,7 +9,10 @@ import org.myteam.server.global.security.dto.CustomUserDetails;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.myteam.server.member.controller.response.MemberResponse;
-import org.myteam.server.member.dto.*;
+import org.myteam.server.member.dto.MemberDeleteRequest;
+import org.myteam.server.member.dto.MemberSaveRequest;
+import org.myteam.server.member.dto.MemberUpdateRequest;
+import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.myteam.server.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,16 +20,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.UUID;
 
-import static org.myteam.server.auth.controller.ReIssueController.LOGOUT_PATH;
-import static org.myteam.server.auth.controller.ReIssueController.TOKEN_REISSUE_PATH;
 import static org.myteam.server.global.security.jwt.JwtProvider.*;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
-import static org.myteam.server.global.util.cookie.CookieUtil.createCookie;
 
 @Slf4j
 @RestController
@@ -46,18 +44,10 @@ public class MyInfoController {
         MemberResponse response = memberService.create(memberSaveRequest);
 
         // Authorization
-        String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), response.getPublicId(), response.getRole().name(), response.getStatus().name());
-        // X-Refresh-Token
-        String refreshToken = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofDays(1), response.getPublicId(), response.getRole().name(), response.getStatus().name());
-        // URLEncoder.encode: 공백을 %2B 로 처리
-        String cookieValue = URLEncoder.encode(TOKEN_PREFIX + refreshToken, StandardCharsets.UTF_8);
-
-        reIssueService.addRefreshEntity(response.getPublicId(), refreshToken, Duration.ofDays(1));
+        String accessToken = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofDays(1), response.getPublicId(), response.getRole().name(), response.getStatus().name());
 
         // 응답 헤더 설정
         httpServletResponse.addHeader(HEADER_AUTHORIZATION, TOKEN_PREFIX + accessToken);
-        httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, TOKEN_REISSUE_PATH, 24 * 60 * 60, true));
-        httpServletResponse.addCookie(createCookie(REFRESH_TOKEN_KEY, cookieValue, LOGOUT_PATH, 24 * 60 * 60, true));
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "회원가입 성공", response), HttpStatus.CREATED);
     }
 
