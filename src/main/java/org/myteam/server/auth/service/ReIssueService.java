@@ -91,7 +91,8 @@ public class ReIssueService {
     public Tokens reissueTokens(HttpServletRequest request) {
         try {
             // Refresh Token 추출 및 디코딩
-            String refresh = extractRefreshToken(request);;
+            String refresh = extractRefreshToken(request);
+            ;
 
             log.info("Extracted refresh token: {}", refresh);
 
@@ -106,7 +107,7 @@ public class ReIssueService {
 
             // 새로운 Access 및 Refresh 토큰 생성
             // Authorization
-            String newAccess = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofMinutes(10), publicId, role, status);
+            String newAccess = jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofDays(1), publicId, role, status);
             // X-Refresh-Token
             String newRefresh = jwtProvider.generateToken(TOKEN_CATEGORY_REFRESH, Duration.ofHours(24), publicId, role, status);
 

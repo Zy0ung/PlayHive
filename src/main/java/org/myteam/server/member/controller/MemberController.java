@@ -7,12 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.web.response.ResponseDto;
-import org.myteam.server.member.domain.MemberRole;
-import org.myteam.server.member.domain.MemberStatus;
-import org.myteam.server.member.dto.ExistMemberRequest;
 import org.myteam.server.member.controller.response.MemberResponse;
-import org.myteam.server.member.dto.MemberStatusUpdateRequest;
+import org.myteam.server.member.dto.ExistMemberRequest;
 import org.myteam.server.member.dto.MemberRoleUpdateRequest;
+import org.myteam.server.member.dto.MemberStatusUpdateRequest;
 import org.myteam.server.member.service.MemberService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +61,7 @@ public class MemberController {
         // accessToken 으로 부터 유저 정보 반환
         MemberResponse response = memberService.getAuthenticatedMember(authorizationHeader);
 
-        log.info("email : {}" , response.getEmail());
+        log.info("email : {}", response.getEmail());
 
         // 서비스 호출
         String targetEmail = response.getEmail(); // 변경을 시도하는 유저의 이메일 (본인 또는 관리자)
@@ -84,7 +82,7 @@ public class MemberController {
     public ResponseEntity<?> getToken(@PathVariable String email) {
         log.info("getToken 메서드가 실행되었습니다.");
         MemberResponse response = memberService.getByEmail(email);
-        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofHours(10), response.getPublicId(), response.getRole().name(), response.getStatus().name());
+        String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofDays(1), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "토큰 조회 성공", encode), HttpStatus.OK);
     }
 }
