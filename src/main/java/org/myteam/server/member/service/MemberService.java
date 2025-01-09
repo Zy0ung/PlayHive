@@ -5,10 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.exception.ErrorCode;
 import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.security.jwt.JwtProvider;
-import org.myteam.server.member.domain.MemberRole;
+import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.dto.*;
-import org.myteam.server.member.controller.response.MemberResponse;
 import org.myteam.server.member.entity.Member;
 import org.myteam.server.member.repository.MemberJpaRepository;
 import org.myteam.server.member.repository.MemberRepository;
@@ -50,6 +49,7 @@ public class MemberService {
 
         // 2. 패스워드인코딩 + 회원 가입
         Member member = memberJpaRepository.save(new Member(memberSaveRequest, passwordEncoder));
+        member.updateStatus(MemberStatus.ACTIVE);
 
         // 4. dto 응답
         return new MemberResponse(member);
@@ -133,7 +133,7 @@ public class MemberService {
         log.info("playHive updateRole isValid: {}", isValid);
 
         if (!isValid) {
-              // 빈 Response 객체 반환
+            // 빈 Response 객체 반환
             throw new PlayHiveException(NO_PERMISSION, "인증 키와 패스워드가 일치하지 않습니다");
         }
 
@@ -179,7 +179,8 @@ public class MemberService {
         // 1. 요청자가 본인의 상태를 변경하려는 경우
         if (requester.verifyOwnEmail(memberStatusUpdateRequest.getEmail())) {
             log.info("사용자가 자신의 상태를 변경 중: {}", targetEmail);
-            if (!requester.getStatus().equals(MemberStatus.PENDING)) throw new PlayHiveException(NO_PERMISSION); // PENDING 인 경우에만 본인의 상태 변경 가능하도록 처리
+            if (!requester.getStatus().equals(MemberStatus.PENDING))
+                throw new PlayHiveException(NO_PERMISSION); // PENDING 인 경우에만 본인의 상태 변경 가능하도록 처리
             requester.updateStatus(memberStatusUpdateRequest.getStatus());
             return;
         }
