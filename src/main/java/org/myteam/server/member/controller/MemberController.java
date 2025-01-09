@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.security.jwt.JwtProvider;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.myteam.server.member.controller.response.MemberResponse;
+import org.myteam.server.member.domain.MemberType;
 import org.myteam.server.member.dto.ExistMemberRequest;
 import org.myteam.server.member.dto.MemberRoleUpdateRequest;
 import org.myteam.server.member.dto.MemberStatusUpdateRequest;
@@ -84,5 +85,12 @@ public class MemberController {
         MemberResponse response = memberService.getByEmail(email);
         String encode = TOKEN_PREFIX + jwtProvider.generateToken(TOKEN_CATEGORY_ACCESS, Duration.ofDays(1), response.getPublicId(), response.getRole().name(), response.getStatus().name());
         return new ResponseEntity<>(new ResponseDto<>(SUCCESS.name(), "토큰 조회 성공", encode), HttpStatus.OK);
+    }
+
+    @GetMapping("/type/{email}")
+    public ResponseEntity<?> getMemberType(@PathVariable String email) {
+        log.info("MemberController getMemberType 메서드 실행: {}", email);
+        MemberType memberType = memberService.getMemberTypeByEmail(email);
+        return ResponseEntity.ok(new ResponseDto<>(SUCCESS.name(), "회원 타입 조회 성공", memberType));
     }
 }
