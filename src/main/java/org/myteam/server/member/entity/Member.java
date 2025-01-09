@@ -1,14 +1,12 @@
 package org.myteam.server.member.entity;
 
 import jakarta.persistence.*;
-
-import java.time.LocalDate;
-import java.util.UUID;
-
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.myteam.server.global.domain.Base;
-import org.myteam.server.member.domain.GenderType;
 import org.myteam.server.member.domain.MemberRole;
 import org.myteam.server.member.domain.MemberStatus;
 import org.myteam.server.member.domain.MemberType;
@@ -16,6 +14,8 @@ import org.myteam.server.member.dto.MemberSaveRequest;
 import org.myteam.server.member.dto.MemberUpdateRequest;
 import org.myteam.server.member.dto.PasswordChangeRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.UUID;
 
 import static org.myteam.server.member.domain.MemberRole.ADMIN;
 import static org.myteam.server.member.domain.MemberRole.USER;
@@ -42,18 +42,7 @@ public class Member extends Base {
     private String tel;
 
     @Column(nullable = false, length = 60)
-    private String name;
-
-    @Column(nullable = false, length = 60)
     private String nickname;
-
-    // YYYY-MM-dd 형식
-    @Column(name = "birth_date")
-    private LocalDate birthdate;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "gender")
-    private GenderType gender;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
@@ -71,15 +60,12 @@ public class Member extends Base {
     private MemberStatus status = PENDING;
 
     @Builder
-    public Member(Long id, String email, String password, String tel, String name, String nickname, LocalDate birthdate, GenderType gender, MemberRole role, MemberType type, UUID publicId, MemberStatus status) {
+    public Member(Long id, String email, String password, String tel, String nickname, MemberRole role, MemberType type, UUID publicId, MemberStatus status) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.tel = tel;
-        this.name = name;
         this.nickname = nickname;
-        this.birthdate = birthdate;
-        this.gender = gender;
         this.role = role;
         this.type = type;
         this.publicId = publicId;
@@ -91,21 +77,15 @@ public class Member extends Base {
         this.email = memberSaveRequest.getEmail();
         this.password = passwordEncoder.encode(memberSaveRequest.getPassword());
         this.tel = memberSaveRequest.getTel();
-        this.name = memberSaveRequest.getName();
         this.nickname = memberSaveRequest.getNickname();
-        this.birthdate = memberSaveRequest.getBirthdate();
-        this.gender = GenderType.fromValue(memberSaveRequest.getGender());
     }
 
     // 전체 업데이트 메서드
     public void update(MemberUpdateRequest memberUpdateRequest, PasswordEncoder passwordEncoder) {
         // this.email = memberUpdateRequest.getEmail();
         // this.password = passwordEncoder.encode(memberUpdateRequest.getPassword()); // 비밀번호 변경 시 암호화 필요
-        this.name = memberUpdateRequest.getName();
         this.tel = memberUpdateRequest.getTel();
-        this.nickname= memberUpdateRequest.getNickname();
-        this.gender = GenderType.fromValue(memberUpdateRequest.getGender());
-        this.birthdate = memberUpdateRequest.getBirthdate();
+        this.nickname = memberUpdateRequest.getNickname();
     }
 
     public void updatePassword(PasswordChangeRequest passwordChangeRequest, PasswordEncoder passwordEncoder) {
