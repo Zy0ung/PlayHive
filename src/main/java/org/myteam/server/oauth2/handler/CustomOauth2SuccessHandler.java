@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Iterator;
@@ -55,7 +57,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         if (member == null || status.equals(PENDING.name())) {
             log.warn("PENDING 상태인 경우 로그인이 불가능합니다");
             // sendErrorResponse(response, HttpStatus.FORBIDDEN, "PENDING 상태인 경우 로그인이 불가능합니다");
-            response.sendRedirect(frontUrl + "?status=" + PENDING.name());
+            response.sendRedirect(frontUrl + "?status=" + PENDING.name() + "&email=" + email);
             return;
         } else if (status.equals(INACTIVE.name())) {
             log.warn("INACTIVE 상태인 경우 로그인이 불가능합니다");
@@ -78,8 +80,7 @@ public class CustomOauth2SuccessHandler extends SimpleUrlAuthenticationSuccessHa
         log.debug("print accessToken: {}", accessToken);
         // log.debug("print refreshToken: {}", refreshToken);
         log.debug("print frontUrl: {}", frontUrl);
-
-        response.sendRedirect(frontUrl);
+        response.sendRedirect(frontUrl + "?accessToken=" + URLEncoder.encode(accessToken, StandardCharsets.UTF_8));
         log.debug("Oauth 로그인에 성공하였습니다.");
     }
 }

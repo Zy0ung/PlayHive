@@ -35,13 +35,13 @@ public class Oauth2Member extends Base {
     @Column(nullable = false, length = 60) // 패스워드 인코딩(BCrypt)
     private String password; // 비밀번호
 
-    @Column(nullable = false, length = 11)
+    @Column(length = 11)
     private String tel;
 
-    @Column(nullable = false, length = 60)
+    @Column(length = 60)
     private String name;
 
-    @Column(nullable = false, length = 60)
+    @Column(length = 60)
     private String nickname;
 
     // YYYY-MM-dd 형식
