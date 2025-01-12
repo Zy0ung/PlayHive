@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 public class CertificationEmailRequest {
-    @Pattern(regexp = "^[a-zA-Z가-힣]{1,20}$", message = "한글/영문 1~20자 이내로 작성해주세요")
+    @Pattern(regexp = "^[a-zA-Z가-힣]{1,40}$", message = "한글/영문 1~40자 이내로 작성해주세요")
     private String email;
 }
