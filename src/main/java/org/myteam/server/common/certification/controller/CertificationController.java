@@ -10,17 +10,17 @@ import org.myteam.server.global.exception.PlayHiveException;
 import org.myteam.server.global.web.response.ResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import static org.myteam.server.global.exception.ErrorCode.UNAUTHORIZED;
 import static org.myteam.server.global.web.response.ResponseStatus.SUCCESS;
 
 @Slf4j
-@Controller
+@RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/certification")
 public class CertificationController {
