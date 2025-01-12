@@ -25,8 +25,10 @@ spring:
     open-in-view: true
 
 logging:
+  file:
+    name: /home/ubuntu/play-hive/back-end-app.log
   level:
-    root: warn  # 전체 로그를 INFO, DEBUG, WARN 수준으로 설정
+    root: info  # 전체 로그를 INFO, DEBUG, WARN 수준으로 설정
     org.springframework.security: warn
     org.springframework.web: warn
     com.myteam.server: info
