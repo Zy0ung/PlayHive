@@ -16,6 +16,7 @@ public class WebConfig {
 
     private final String[] ALLOWED_ORIGIN = {
             "http://localhost:3000",
+            "http://playhive.com:3000",
     };
 
 
