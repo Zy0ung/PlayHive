@@ -192,6 +192,7 @@ public class SecurityConfig {
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.addAllowedOrigin(frontUrl); // TODO_ 추후 변경 해야함 배포시
+        configuration.addAllowedOriginPattern("http://playhive.com:3000"); // TODO_ 추후 변경 해야함 배포시
         configuration.setAllowCredentials(true);
         configuration.addExposedHeader(HEADER_AUTHORIZATION);
         configuration.addExposedHeader(REFRESH_TOKEN_KEY);
